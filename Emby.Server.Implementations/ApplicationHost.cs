@@ -99,7 +99,6 @@ using MediaBrowser.Providers.Books.ComicBookInfo;
 using MediaBrowser.Providers.Books.ComicInfo;
 using MediaBrowser.Providers.Lyric;
 using MediaBrowser.Providers.Manager;
-using MediaBrowser.Providers.Photos;
 using MediaBrowser.Providers.Plugins.ListenBrainz;
 using MediaBrowser.Providers.Plugins.ListenBrainz.Api;
 using MediaBrowser.Providers.Plugins.Tmdb;
@@ -896,9 +895,6 @@ namespace Emby.Server.Implementations
 
             // Include composable parts in the Providers assembly
             yield return typeof(ProviderManager).Assembly;
-
-            // Include composable parts in the Photos assembly
-            yield return typeof(PhotoProvider).Assembly;
 
             // Emby.Server implementations
             yield return typeof(InstallationManager).Assembly;
