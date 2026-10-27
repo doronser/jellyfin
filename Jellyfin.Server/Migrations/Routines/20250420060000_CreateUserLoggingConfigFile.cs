@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using MediaBrowser.Common.Configuration;
-using Newtonsoft.Json.Linq;
 
 namespace Jellyfin.Server.Migrations.Routines
 {
@@ -38,6 +39,13 @@ namespace Jellyfin.Server.Migrations.Routines
             @"{""Serilog"":{""MinimumLevel"":""Information"",""WriteTo"":[{""Name"":""Console"",""Args"":{""outputTemplate"":""[{Timestamp:HH:mm:ss}] [{Level:u3}] [{ThreadId}] {SourceContext}: {Message:lj}{NewLine}{Exception}""}},{""Name"":""Async"",""Args"":{""configure"":[{""Name"":""File"",""Args"":{""path"":""%JELLYFIN_LOG_DIR%//log_.log"",""rollingInterval"":""Day"",""retainedFileCountLimit"":3,""rollOnFileSizeLimit"":true,""fileSizeLimitBytes"":100000000,""outputTemplate"":""[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{ThreadId}] {SourceContext}:{Message}{NewLine}{Exception}""}}]}}],""Enrich"":[""FromLogContext"",""WithThreadId""]}}",
         };
 
+        // Newtonsoft accepted comments and trailing commas, keep reading user-edited files just as leniently.
+        private static readonly JsonDocumentOptions _lenientOptions = new()
+        {
+            CommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true
+        };
+
         private readonly IApplicationPaths _appPaths;
 
         public CreateUserLoggingConfigFile(IApplicationPaths appPaths)
@@ -67,10 +75,10 @@ namespace Jellyfin.Server.Migrations.Routines
         /// <exception cref="IOException"><paramref name="oldConfigPath"/> does not exist or could not be read.</exception>
         private bool ExistingConfigUnmodified(string oldConfigPath)
         {
-            var existingConfigJson = JToken.Parse(File.ReadAllText(oldConfigPath));
+            var existingConfigJson = JsonNode.Parse(File.ReadAllText(oldConfigPath), documentOptions: _lenientOptions);
             return _defaultConfigHistory
-                .Select(JToken.Parse)
-                .Any(historicalConfigJson => JToken.DeepEquals(existingConfigJson, historicalConfigJson));
+                .Select(historicalConfig => JsonNode.Parse(historicalConfig, documentOptions: _lenientOptions))
+                .Any(historicalConfigJson => JsonNode.DeepEquals(existingConfigJson, historicalConfigJson));
         }
     }
 }

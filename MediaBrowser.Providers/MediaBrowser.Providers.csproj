@@ -20,7 +20,6 @@
     <PackageReference Include="MetaBrainz.MusicBrainz" />
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="PDFtoImage" />
     <PackageReference Include="PlaylistsNET" />
     <PackageReference Include="SharpCompress" />
