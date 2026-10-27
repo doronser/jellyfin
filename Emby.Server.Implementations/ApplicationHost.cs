@@ -13,9 +13,6 @@ using System.Net;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Emby.Naming.Common;
-using Emby.Naming.Video;
-using Emby.Photos;
 using Emby.Server.Implementations.Chapters;
 using Emby.Server.Implementations.Collections;
 using Emby.Server.Implementations.Configuration;
@@ -43,6 +40,8 @@ using Jellyfin.Data;
 using Jellyfin.Database.Implementations.Enums;
 using Jellyfin.Drawing;
 using Jellyfin.MediaEncoding.Hls.Playlist;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.Video;
 using Jellyfin.Networking.Manager;
 using Jellyfin.Networking.Udp;
 using Jellyfin.Server.Implementations.FullSystemBackup;
@@ -896,9 +895,6 @@ namespace Emby.Server.Implementations
 
             // Include composable parts in the Providers assembly
             yield return typeof(ProviderManager).Assembly;
-
-            // Include composable parts in the Photos assembly
-            yield return typeof(PhotoProvider).Assembly;
 
             // Emby.Server implementations
             yield return typeof(InstallationManager).Assembly;

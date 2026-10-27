@@ -1,5 +1,5 @@
-using Emby.Naming.AudioBook;
-using Emby.Naming.Common;
+using Jellyfin.Naming.AudioBook;
+using Jellyfin.Naming.Common;
 using Xunit;
 
 namespace Jellyfin.Naming.Tests.AudioBook

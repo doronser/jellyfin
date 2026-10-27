@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Emby.Naming\Emby.Naming.csproj" />
+    <ProjectReference Include="..\..\Jellyfin.Naming\Jellyfin.Naming.csproj" />
   </ItemGroup>
 
 </Project>

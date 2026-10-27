@@ -4,9 +4,9 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Emby.Naming.Common;
-using Emby.Naming.TV;
 using Emby.Server.Implementations.Library;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.TV;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Model.Entities;
@@ -65,7 +65,7 @@ namespace Emby.Server.Implementations.Library.Resolvers.TV
 
                 if (!season.IndexNumber.HasValue || !seasonParserResult.IsSeasonFolder)
                 {
-                    var resolver = new Naming.TV.EpisodeResolver(namingOptions);
+                    var resolver = new Jellyfin.Naming.TV.EpisodeResolver(namingOptions);
 
                     var folderName = System.IO.Path.GetFileName(path);
                     var testPath = @"\\test\" + folderName;

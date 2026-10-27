@@ -1,4 +1,4 @@
-using Emby.Naming.AudioBook;
+using Jellyfin.Naming.AudioBook;
 using Xunit;
 
 namespace Jellyfin.Naming.Tests.AudioBook

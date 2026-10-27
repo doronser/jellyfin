@@ -1,5 +1,5 @@
-using Emby.Naming.Common;
-using Emby.Naming.Video;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.Video;
 using Xunit;
 
 namespace Jellyfin.Naming.Tests.Video

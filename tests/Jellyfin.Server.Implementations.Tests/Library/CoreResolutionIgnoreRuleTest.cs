@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using Emby.Naming.Common;
-using Emby.Naming.Video;
 using Emby.Server.Implementations.Library;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.Video;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Model.Entities;

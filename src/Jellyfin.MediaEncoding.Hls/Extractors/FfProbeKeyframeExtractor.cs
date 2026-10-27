@@ -1,9 +1,9 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using Emby.Naming.Common;
 using Jellyfin.Extensions;
 using Jellyfin.MediaEncoding.Keyframes;
+using Jellyfin.Naming.Common;
 using MediaBrowser.Controller.MediaEncoding;
 using Microsoft.Extensions.Logging;
 using Extractor = Jellyfin.MediaEncoding.Keyframes.FfProbe.FfProbeKeyframeExtractor;

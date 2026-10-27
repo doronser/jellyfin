@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
-using Emby.Naming.AudioBook;
-using Emby.Naming.Common;
+using Jellyfin.Naming.AudioBook;
+using Jellyfin.Naming.Common;
 using MediaBrowser.Model.IO;
 using Xunit;
 

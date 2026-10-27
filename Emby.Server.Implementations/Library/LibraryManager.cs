@@ -12,9 +12,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using BitFaster.Caching.Lru;
-using Emby.Naming.Common;
-using Emby.Naming.TV;
-using Emby.Naming.Video;
 using Emby.Server.Implementations.Library.Resolvers;
 using Emby.Server.Implementations.Playlists;
 using Emby.Server.Implementations.ScheduledTasks.Tasks;
@@ -24,6 +21,9 @@ using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Entities;
 using Jellyfin.Database.Implementations.Enums;
 using Jellyfin.Extensions;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.TV;
+using Jellyfin.Naming.Video;
 using MediaBrowser.Common.Extensions;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Configuration;
@@ -51,10 +51,10 @@ using MediaBrowser.Model.Querying;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
 using Episode = MediaBrowser.Controller.Entities.TV.Episode;
-using EpisodeInfo = Emby.Naming.TV.EpisodeInfo;
+using EpisodeInfo = Jellyfin.Naming.TV.EpisodeInfo;
 using Genre = MediaBrowser.Controller.Entities.Genre;
 using Person = MediaBrowser.Controller.Entities.Person;
-using VideoResolver = Emby.Naming.Video.VideoResolver;
+using VideoResolver = Jellyfin.Naming.Video.VideoResolver;
 
 namespace Emby.Server.Implementations.Library
 {

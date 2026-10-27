@@ -1,4 +1,4 @@
-using Emby.Naming.TV;
+using Jellyfin.Naming.TV;
 using MediaBrowser.Model.Entities;
 using Xunit;
 

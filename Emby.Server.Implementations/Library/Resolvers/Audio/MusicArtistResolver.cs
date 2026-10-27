@@ -3,9 +3,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Emby.Naming.Audio;
-using Emby.Naming.Common;
 using Jellyfin.Data.Enums;
+using Jellyfin.Naming.Audio;
+using Jellyfin.Naming.Common;
 using MediaBrowser.Controller.Entities.Audio;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;

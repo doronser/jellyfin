@@ -1,4 +1,4 @@
-using Emby.Naming.Common;
+using Jellyfin.Naming.Common;
 using Xunit;
 
 namespace Jellyfin.Naming.Tests.Common

@@ -25,7 +25,7 @@ jellyfin_subprojects=(
   Jellyfin.Data/Jellyfin.Data.csproj
   MediaBrowser.Controller/MediaBrowser.Controller.csproj
   MediaBrowser.Model/MediaBrowser.Model.csproj
-  Emby.Naming/Emby.Naming.csproj
+  Jellyfin.Naming/Jellyfin.Naming.csproj
   src/Jellyfin.Extensions/Jellyfin.Extensions.csproj
 )
 issue_template_file="./.github/ISSUE_TEMPLATE/issue report.yml"

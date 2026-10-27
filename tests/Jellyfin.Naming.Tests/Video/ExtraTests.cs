@@ -1,9 +1,9 @@
-using Emby.Naming.Common;
-using Emby.Naming.Video;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.Video;
 using MediaBrowser.Model.Entities;
 using Xunit;
 
-using MediaType = Emby.Naming.Common.MediaType;
+using MediaType = Jellyfin.Naming.Common.MediaType;
 
 namespace Jellyfin.Naming.Tests.Video
 {

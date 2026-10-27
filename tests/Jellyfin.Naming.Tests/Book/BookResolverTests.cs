@@ -1,4 +1,4 @@
-using Emby.Naming.Book;
+using Jellyfin.Naming.Book;
 using Xunit;
 
 namespace Jellyfin.Naming.Tests.Book;
