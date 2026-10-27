@@ -5,7 +5,7 @@ MediaBrowser.Common/MediaBrowser.Common.csproj          @joshuaboniface
 Jellyfin.Data/Jellyfin.Data.csproj                      @joshuaboniface
 MediaBrowser.Controller/MediaBrowser.Controller.csproj  @joshuaboniface
 MediaBrowser.Model/MediaBrowser.Model.csproj            @joshuaboniface
-Emby.Naming/Emby.Naming.csproj                          @joshuaboniface
+Jellyfin.Naming/Jellyfin.Naming.csproj                          @joshuaboniface
 src/Jellyfin.Extensions/Jellyfin.Extensions.csproj      @joshuaboniface
 # Core must approve all changes within the repo config
 .github/                                                @jellyfin/core

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Emby.Naming.Common;
-using Emby.Naming.Video;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.Video;
 using Jellyfin.Data.Enums;
 using MediaBrowser.Model.Entities;
 using Xunit;

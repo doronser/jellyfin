@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Emby.Naming.Common;
-using Emby.Naming.Video;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.Video;
 using Emby.Server.Implementations.Library.Resolvers.Movies;
 using Jellyfin.Data.Enums;
 using MediaBrowser.Controller;

@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
-using Emby.Naming.Common;
-using Emby.Naming.ExternalFiles;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.ExternalFiles;
 using MediaBrowser.Model.Dlna;
 using MediaBrowser.Model.Globalization;
 using Moq;

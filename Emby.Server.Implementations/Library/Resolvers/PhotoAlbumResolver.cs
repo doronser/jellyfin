@@ -1,7 +1,7 @@
 #nullable disable
 
 using System;
-using Emby.Naming.Common;
+using Jellyfin.Naming.Common;
 using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;

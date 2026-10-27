@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using Emby.Naming.Audio;
-using Emby.Naming.Common;
+using Jellyfin.Naming.Audio;
+using Jellyfin.Naming.Common;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Resolvers;

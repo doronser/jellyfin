@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using Emby.Naming.Common;
+using Jellyfin.Naming.Common;
 using Emby.Server.Implementations.Library;
 using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Entities.TV;

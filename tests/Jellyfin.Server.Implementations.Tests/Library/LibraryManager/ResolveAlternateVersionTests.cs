@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using AutoFixture;
 using AutoFixture.AutoMoq;
-using Emby.Naming.Common;
+using Jellyfin.Naming.Common;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;

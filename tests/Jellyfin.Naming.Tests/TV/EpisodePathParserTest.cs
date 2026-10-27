@@ -1,5 +1,5 @@
-using Emby.Naming.Common;
-using Emby.Naming.TV;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.TV;
 using Xunit;
 
 namespace Jellyfin.Naming.Tests.TV

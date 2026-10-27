@@ -3,7 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using Emby.Naming.Book;
+using Jellyfin.Naming.Book;
 using Jellyfin.Data.Enums;
 using Jellyfin.Extensions;
 using MediaBrowser.Controller.Entities;

@@ -1,5 +1,5 @@
-using Emby.Naming.Audio;
-using Emby.Naming.Common;
+using Jellyfin.Naming.Audio;
+using Jellyfin.Naming.Common;
 using Xunit;
 
 namespace Jellyfin.Naming.Tests.Music

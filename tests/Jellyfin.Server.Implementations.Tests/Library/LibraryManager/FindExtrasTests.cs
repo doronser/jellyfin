@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.Json;
 using AutoFixture;
 using AutoFixture.AutoMoq;
-using Emby.Naming.Common;
+using Jellyfin.Naming.Common;
 using Emby.Server.Implementations.Library.Resolvers.Audio;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;

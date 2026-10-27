@@ -5,9 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Emby.Naming.Common;
-using Emby.Naming.TV;
-using Emby.Naming.Video;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.TV;
+using Jellyfin.Naming.Video;
 using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;

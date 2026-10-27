@@ -4,7 +4,7 @@ using System.Data.Common;
 using System.Linq;
 using AutoFixture;
 using AutoFixture.AutoMoq;
-using Emby.Naming.Common;
+using Jellyfin.Naming.Common;
 using Emby.Server.Implementations.Data;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Entities;

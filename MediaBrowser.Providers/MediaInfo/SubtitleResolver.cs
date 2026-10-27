@@ -1,4 +1,4 @@
-using Emby.Naming.Common;
+using Jellyfin.Naming.Common;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.MediaEncoding;
 using MediaBrowser.Model.Dlna;
