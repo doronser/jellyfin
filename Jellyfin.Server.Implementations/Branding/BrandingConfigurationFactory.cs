@@ -2,24 +2,23 @@ using System.Collections.Generic;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Model.Branding;
 
-namespace Jellyfin.Server.Implementations.Branding
+namespace Jellyfin.Server.Implementations.Branding;
+
+/// <summary>
+/// A configuration factory for <see cref="BrandingOptions"/>.
+/// </summary>
+public class BrandingConfigurationFactory : IConfigurationFactory
 {
-    /// <summary>
-    /// A configuration factory for <see cref="BrandingOptions"/>.
-    /// </summary>
-    public class BrandingConfigurationFactory : IConfigurationFactory
+    /// <inheritdoc />
+    public IEnumerable<ConfigurationStore> GetConfigurations()
     {
-        /// <inheritdoc />
-        public IEnumerable<ConfigurationStore> GetConfigurations()
+        return new[]
         {
-            return new[]
+            new ConfigurationStore
             {
-                new ConfigurationStore
-                {
-                     ConfigurationType = typeof(BrandingOptions),
-                     Key = "branding"
-                }
-            };
-        }
+                 ConfigurationType = typeof(BrandingOptions),
+                 Key = "branding"
+            }
+        };
     }
 }

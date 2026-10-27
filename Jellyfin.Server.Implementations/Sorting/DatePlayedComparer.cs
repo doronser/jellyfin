@@ -8,63 +8,62 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
 
-namespace Jellyfin.Server.Implementations.Sorting
+namespace Jellyfin.Server.Implementations.Sorting;
+
+/// <summary>
+/// Class DatePlayedComparer.
+/// </summary>
+public class DatePlayedComparer : IUserBaseItemComparer
 {
     /// <summary>
-    /// Class DatePlayedComparer.
+    /// Gets or sets the user.
     /// </summary>
-    public class DatePlayedComparer : IUserBaseItemComparer
+    /// <value>The user.</value>
+    public User User { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user manager.
+    /// </summary>
+    /// <value>The user manager.</value>
+    public IUserManager UserManager { get; set; }
+
+    /// <summary>
+    /// Gets or sets the user data manager.
+    /// </summary>
+    /// <value>The user data manager.</value>
+    public IUserDataManager UserDataManager { get; set; }
+
+    /// <summary>
+    /// Gets the name.
+    /// </summary>
+    /// <value>The name.</value>
+    public ItemSortBy Type => ItemSortBy.DatePlayed;
+
+    /// <summary>
+    /// Compares the specified x.
+    /// </summary>
+    /// <param name="x">The x.</param>
+    /// <param name="y">The y.</param>
+    /// <returns>System.Int32.</returns>
+    public int Compare(BaseItem x, BaseItem y)
     {
-        /// <summary>
-        /// Gets or sets the user.
-        /// </summary>
-        /// <value>The user.</value>
-        public User User { get; set; }
+        return GetDate(x).CompareTo(GetDate(y));
+    }
 
-        /// <summary>
-        /// Gets or sets the user manager.
-        /// </summary>
-        /// <value>The user manager.</value>
-        public IUserManager UserManager { get; set; }
+    /// <summary>
+    /// Gets the date.
+    /// </summary>
+    /// <param name="x">The x.</param>
+    /// <returns>DateTime.</returns>
+    private DateTime GetDate(BaseItem x)
+    {
+        var userdata = UserDataManager.GetUserData(User, x);
 
-        /// <summary>
-        /// Gets or sets the user data manager.
-        /// </summary>
-        /// <value>The user data manager.</value>
-        public IUserDataManager UserDataManager { get; set; }
-
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
-        /// <value>The name.</value>
-        public ItemSortBy Type => ItemSortBy.DatePlayed;
-
-        /// <summary>
-        /// Compares the specified x.
-        /// </summary>
-        /// <param name="x">The x.</param>
-        /// <param name="y">The y.</param>
-        /// <returns>System.Int32.</returns>
-        public int Compare(BaseItem x, BaseItem y)
+        if (userdata is not null && userdata.LastPlayedDate.HasValue)
         {
-            return GetDate(x).CompareTo(GetDate(y));
+            return userdata.LastPlayedDate.Value;
         }
 
-        /// <summary>
-        /// Gets the date.
-        /// </summary>
-        /// <param name="x">The x.</param>
-        /// <returns>DateTime.</returns>
-        private DateTime GetDate(BaseItem x)
-        {
-            var userdata = UserDataManager.GetUserData(User, x);
-
-            if (userdata is not null && userdata.LastPlayedDate.HasValue)
-            {
-                return userdata.LastPlayedDate.Value;
-            }
-
-            return DateTime.MinValue;
-        }
+        return DateTime.MinValue;
     }
 }

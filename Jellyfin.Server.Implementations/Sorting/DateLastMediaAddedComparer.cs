@@ -7,43 +7,42 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
 
-namespace Jellyfin.Server.Implementations.Sorting
+namespace Jellyfin.Server.Implementations.Sorting;
+
+public class DateLastMediaAddedComparer : IBaseItemComparer
 {
-    public class DateLastMediaAddedComparer : IBaseItemComparer
+    /// <summary>
+    /// Gets the name.
+    /// </summary>
+    /// <value>The name.</value>
+    public ItemSortBy Type => ItemSortBy.DateLastContentAdded;
+
+    /// <summary>
+    /// Compares the specified x.
+    /// </summary>
+    /// <param name="x">The x.</param>
+    /// <param name="y">The y.</param>
+    /// <returns>System.Int32.</returns>
+    public int Compare(BaseItem x, BaseItem y)
     {
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
-        /// <value>The name.</value>
-        public ItemSortBy Type => ItemSortBy.DateLastContentAdded;
+        return GetDate(x).CompareTo(GetDate(y));
+    }
 
-        /// <summary>
-        /// Compares the specified x.
-        /// </summary>
-        /// <param name="x">The x.</param>
-        /// <param name="y">The y.</param>
-        /// <returns>System.Int32.</returns>
-        public int Compare(BaseItem x, BaseItem y)
+    /// <summary>
+    /// Gets the date.
+    /// </summary>
+    /// <param name="x">The x.</param>
+    /// <returns>DateTime.</returns>
+    private static DateTime GetDate(BaseItem x)
+    {
+        if (x is Folder folder)
         {
-            return GetDate(x).CompareTo(GetDate(y));
-        }
-
-        /// <summary>
-        /// Gets the date.
-        /// </summary>
-        /// <param name="x">The x.</param>
-        /// <returns>DateTime.</returns>
-        private static DateTime GetDate(BaseItem x)
-        {
-            if (x is Folder folder)
+            if (folder.DateLastMediaAdded.HasValue)
             {
-                if (folder.DateLastMediaAdded.HasValue)
-                {
-                    return folder.DateLastMediaAdded.Value;
-                }
+                return folder.DateLastMediaAdded.Value;
             }
-
-            return DateTime.MinValue;
         }
+
+        return DateTime.MinValue;
     }
 }

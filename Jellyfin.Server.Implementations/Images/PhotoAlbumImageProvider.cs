@@ -7,13 +7,12 @@ using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.IO;
 
-namespace Jellyfin.Server.Implementations.Images
+namespace Jellyfin.Server.Implementations.Images;
+
+public class PhotoAlbumImageProvider : BaseFolderImageProvider<PhotoAlbum>
 {
-    public class PhotoAlbumImageProvider : BaseFolderImageProvider<PhotoAlbum>
+    public PhotoAlbumImageProvider(IFileSystem fileSystem, IProviderManager providerManager, IApplicationPaths applicationPaths, IImageProcessor imageProcessor, ILibraryManager libraryManager)
+        : base(fileSystem, providerManager, applicationPaths, imageProcessor, libraryManager)
     {
-        public PhotoAlbumImageProvider(IFileSystem fileSystem, IProviderManager providerManager, IApplicationPaths applicationPaths, IImageProcessor imageProcessor, ILibraryManager libraryManager)
-            : base(fileSystem, providerManager, applicationPaths, imageProcessor, libraryManager)
-        {
-        }
     }
 }

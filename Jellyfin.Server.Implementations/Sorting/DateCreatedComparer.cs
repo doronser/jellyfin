@@ -4,32 +4,31 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Sorting;
 using MediaBrowser.Model.Querying;
 
-namespace Jellyfin.Server.Implementations.Sorting
+namespace Jellyfin.Server.Implementations.Sorting;
+
+/// <summary>
+/// Class DateCreatedComparer.
+/// </summary>
+public class DateCreatedComparer : IBaseItemComparer
 {
     /// <summary>
-    /// Class DateCreatedComparer.
+    /// Gets the name.
     /// </summary>
-    public class DateCreatedComparer : IBaseItemComparer
+    /// <value>The name.</value>
+    public ItemSortBy Type => ItemSortBy.DateCreated;
+
+    /// <summary>
+    /// Compares the specified x.
+    /// </summary>
+    /// <param name="x">The x.</param>
+    /// <param name="y">The y.</param>
+    /// <returns>System.Int32.</returns>
+    public int Compare(BaseItem? x, BaseItem? y)
     {
-        /// <summary>
-        /// Gets the name.
-        /// </summary>
-        /// <value>The name.</value>
-        public ItemSortBy Type => ItemSortBy.DateCreated;
+        ArgumentNullException.ThrowIfNull(x);
 
-        /// <summary>
-        /// Compares the specified x.
-        /// </summary>
-        /// <param name="x">The x.</param>
-        /// <param name="y">The y.</param>
-        /// <returns>System.Int32.</returns>
-        public int Compare(BaseItem? x, BaseItem? y)
-        {
-            ArgumentNullException.ThrowIfNull(x);
+        ArgumentNullException.ThrowIfNull(y);
 
-            ArgumentNullException.ThrowIfNull(y);
-
-            return DateTime.Compare(x.DateCreated, y.DateCreated);
-        }
+        return DateTime.Compare(x.DateCreated, y.DateCreated);
     }
 }
