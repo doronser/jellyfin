@@ -76,9 +76,18 @@ namespace Jellyfin.Server.Migrations.Routines
         private bool ExistingConfigUnmodified(string oldConfigPath)
         {
             var existingConfigJson = JsonNode.Parse(File.ReadAllText(oldConfigPath), documentOptions: _lenientOptions);
-            return _defaultConfigHistory
-                .Select(historicalConfig => JsonNode.Parse(historicalConfig, documentOptions: _lenientOptions))
-                .Any(historicalConfigJson => JsonNode.DeepEquals(existingConfigJson, historicalConfigJson));
+            try
+            {
+                return _defaultConfigHistory
+                    .Select(historicalConfig => JsonNode.Parse(historicalConfig, documentOptions: _lenientOptions))
+                    .Any(historicalConfigJson => JsonNode.DeepEquals(existingConfigJson, historicalConfigJson));
+            }
+            catch (ArgumentException)
+            {
+                // Newtonsoft tolerated duplicate property names (last wins), System.Text.Json rejects them (lazily, on comparison).
+                // None of the historical default configs contain duplicates, so such a file has been edited by the user.
+                return false;
+            }
         }
     }
 }

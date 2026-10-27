@@ -85,6 +85,17 @@ public sealed class CreateUserLoggingConfigFileTests : IDisposable
     }
 
     [Fact]
+    public void Perform_ConfigWithDuplicateProperties_IsKept()
+    {
+        File.WriteAllText(_loggingPath, "{\"Serilog\":{\"MinimumLevel\":\"Debug\",\"MinimumLevel\":\"Information\"}}");
+
+        _migration.Perform();
+
+        Assert.True(File.Exists(_loggingPath));
+        Assert.False(File.Exists(_oldLoggingPath));
+    }
+
+    [Fact]
     public void Perform_ConfigWithCommentsAndTrailingCommas_IsParsedLeniently()
     {
         File.WriteAllText(_loggingPath, "// user comment\n{\"Serilog\":{\"MinimumLevel\":\"Debug\",},}");
