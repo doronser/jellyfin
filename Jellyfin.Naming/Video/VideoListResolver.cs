@@ -4,9 +4,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Jellyfin.Data.Enums;
 using Jellyfin.Naming.Common;
 using Jellyfin.Naming.TV;
-using Jellyfin.Data.Enums;
 using MediaBrowser.Model.IO;
 
 namespace Jellyfin.Naming.Video

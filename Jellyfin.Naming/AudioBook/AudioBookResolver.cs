@@ -1,7 +1,7 @@
 using System;
 using System.IO;
-using Jellyfin.Naming.Common;
 using Jellyfin.Extensions;
+using Jellyfin.Naming.Common;
 
 namespace Jellyfin.Naming.AudioBook
 {

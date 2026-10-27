@@ -5,10 +5,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Jellyfin.Data.Enums;
 using Jellyfin.Naming.Common;
 using Jellyfin.Naming.TV;
 using Jellyfin.Naming.Video;
-using Jellyfin.Data.Enums;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Resolvers;
@@ -62,7 +62,7 @@ namespace Emby.Server.Implementations.Library.Resolvers.TV
                     return null;
                 }
 
-                var seriesInfo = Naming.TV.SeriesResolver.Resolve(_namingOptions, args.Path);
+                var seriesInfo = Jellyfin.Naming.TV.SeriesResolver.Resolve(_namingOptions, args.Path);
 
                 var collectionType = args.GetCollectionType();
                 if (collectionType == CollectionType.tvshows)
@@ -142,7 +142,7 @@ namespace Emby.Server.Implementations.Library.Resolvers.TV
 
                         var namingOptions = _namingOptions;
 
-                        var episodeResolver = new Naming.TV.EpisodeResolver(namingOptions);
+                        var episodeResolver = new Jellyfin.Naming.TV.EpisodeResolver(namingOptions);
 
                         var episodeInfo = episodeResolver.Resolve(fullName, false, true, false, fillExtendedInfo: false);
                         if (episodeInfo is not null && episodeInfo.EpisodeNumber.HasValue)

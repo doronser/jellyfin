@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Linq;
-using Jellyfin.Naming.Common;
-using Jellyfin.Naming.Video;
 using Jellyfin.Data.Enums;
 using Jellyfin.Extensions;
+using Jellyfin.Naming.Common;
+using Jellyfin.Naming.Video;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;

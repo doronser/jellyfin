@@ -1,8 +1,8 @@
 using System;
 using System.IO;
+using Jellyfin.Extensions;
 using Jellyfin.Naming.Common;
 using Jellyfin.Naming.Video;
-using Jellyfin.Extensions;
 
 namespace Jellyfin.Naming.TV
 {

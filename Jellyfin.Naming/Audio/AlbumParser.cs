@@ -2,8 +2,8 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Text.RegularExpressions;
-using Jellyfin.Naming.Common;
 using Jellyfin.Extensions;
+using Jellyfin.Naming.Common;
 
 namespace Jellyfin.Naming.Audio
 {

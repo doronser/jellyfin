@@ -3,9 +3,9 @@
 using System;
 using System.IO;
 using System.Linq;
-using Jellyfin.Naming.Book;
 using Jellyfin.Data.Enums;
 using Jellyfin.Extensions;
+using Jellyfin.Naming.Book;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Resolvers;
