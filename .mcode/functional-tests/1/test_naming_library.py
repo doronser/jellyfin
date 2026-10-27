@@ -91,9 +91,12 @@ def test_create_libraries_and_scan():
     deadline = time.time() + 120
     while time.time() < deadline:
         time.sleep(3)
-        r = api("GET", "/Items", params={"Recursive": "true", "IncludeItemTypes": "Movie", "Fields": "Path"})
-        if r.json().get("TotalRecordCount", 0) >= 2:
-            time.sleep(5)
+        ok = True
+        for t, n in (("Movie", 2), ("Episode", 2), ("Audio", 1)):
+            r = api("GET", "/Items", params={"Recursive": "true", "IncludeItemTypes": t})
+            ok = ok and r.json().get("TotalRecordCount", 0) >= n
+        if ok:
+            time.sleep(8)
             break
 
 
@@ -116,7 +119,7 @@ def test_tv_naming_resolution():
     series = items(IncludeItemTypes="Series")
     assert any(s["Name"] == "Breaking Bad" for s in series), series
     eps = items(IncludeItemTypes="Episode")
-    rec("tv", [sorted(s["Name"] for s in series), sorted((e.get("ParentIndexNumber"), e.get("IndexNumber")) for e in eps)])
+    rec("tv", [sorted(s["Name"] for s in series), sorted(((e.get("ParentIndexNumber") or 0), (e.get("IndexNumber") or 0)) for e in eps)])
     pairs = {(e.get("ParentIndexNumber"), e.get("IndexNumber")) for e in eps}
     assert {(1, 1), (1, 2)} <= pairs, pairs
 
