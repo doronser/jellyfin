@@ -1,4 +1,4 @@
-using Emby.Server.Implementations.Playlists;
+using Jellyfin.Server.Implementations.Playlists;
 using Xunit;
 
 namespace Jellyfin.Server.Implementations.Tests.Playlists;

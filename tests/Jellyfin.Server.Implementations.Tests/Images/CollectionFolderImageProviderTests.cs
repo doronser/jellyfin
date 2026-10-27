@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Emby.Server.Implementations.Images;
 using Jellyfin.Data.Enums;
+using Jellyfin.Server.Implementations.Images;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Controller.Drawing;
 using MediaBrowser.Controller.Entities;
