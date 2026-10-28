@@ -17,15 +17,8 @@ using MusicAlbum = MediaBrowser.Controller.Entities.Audio.MusicAlbum;
 
 namespace Jellyfin.Server.Implementations.Library;
 
-public class MusicManager : IMusicManager
+public class MusicManager(ILibraryManager libraryManager) : IMusicManager
 {
-    private readonly ILibraryManager _libraryManager;
-
-    public MusicManager(ILibraryManager libraryManager)
-    {
-        _libraryManager = libraryManager;
-    }
-
     public IReadOnlyList<BaseItem> GetInstantMixFromSong(Audio item, User? user, DtoOptions dtoOptions)
     {
         var instantMixItems = GetInstantMixFromGenres(item.Genres, user, dtoOptions);
@@ -74,7 +67,7 @@ public class MusicManager : IMusicManager
         {
             try
             {
-                return _libraryManager.GetMusicGenre(i).Id;
+                return libraryManager.GetMusicGenre(i).Id;
             }
             catch
             {
@@ -87,7 +80,7 @@ public class MusicManager : IMusicManager
 
     public IReadOnlyList<BaseItem> GetInstantMixFromGenreIds(Guid[] genreIds, User? user, DtoOptions dtoOptions)
     {
-        return _libraryManager.GetItemList(new InternalItemsQuery(user)
+        return libraryManager.GetItemList(new InternalItemsQuery(user)
         {
             IncludeItemTypes = [BaseItemKind.Audio],
             GenreIds = genreIds,

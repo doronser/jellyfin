@@ -14,56 +14,36 @@ namespace Jellyfin.Server.Implementations.Library;
 /// <summary>
 /// IExternalDataManager implementation.
 /// </summary>
-public class ExternalDataManager : IExternalDataManager
+/// <param name="keyframeManager">The keyframe manager.</param>
+/// <param name="mediaSegmentManager">The media segment manager.</param>
+/// <param name="pathManager">The path manager.</param>
+/// <param name="trickplayManager">The trickplay manager.</param>
+/// <param name="chapterManager">The chapter manager.</param>
+/// <param name="logger">The logger.</param>
+public partial class ExternalDataManager(
+    IKeyframeManager keyframeManager,
+    IMediaSegmentManager mediaSegmentManager,
+    IPathManager pathManager,
+    ITrickplayManager trickplayManager,
+    IChapterManager chapterManager,
+    ILogger<ExternalDataManager> logger) : IExternalDataManager
 {
-    private readonly IKeyframeManager _keyframeManager;
-    private readonly IMediaSegmentManager _mediaSegmentManager;
-    private readonly IPathManager _pathManager;
-    private readonly ITrickplayManager _trickplayManager;
-    private readonly IChapterManager _chapterManager;
-    private readonly ILogger<ExternalDataManager> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ExternalDataManager"/> class.
-    /// </summary>
-    /// <param name="keyframeManager">The keyframe manager.</param>
-    /// <param name="mediaSegmentManager">The media segment manager.</param>
-    /// <param name="pathManager">The path manager.</param>
-    /// <param name="trickplayManager">The trickplay manager.</param>
-    /// <param name="chapterManager">The chapter manager.</param>
-    /// <param name="logger">The logger.</param>
-    public ExternalDataManager(
-        IKeyframeManager keyframeManager,
-        IMediaSegmentManager mediaSegmentManager,
-        IPathManager pathManager,
-        ITrickplayManager trickplayManager,
-        IChapterManager chapterManager,
-        ILogger<ExternalDataManager> logger)
-    {
-        _keyframeManager = keyframeManager;
-        _mediaSegmentManager = mediaSegmentManager;
-        _pathManager = pathManager;
-        _trickplayManager = trickplayManager;
-        _chapterManager = chapterManager;
-        _logger = logger;
-    }
-
     /// <inheritdoc/>
     public async Task DeleteExternalItemDataAsync(BaseItem item, CancellationToken cancellationToken)
     {
         DeleteExternalItemFiles(item);
 
         var itemId = item.Id;
-        await _keyframeManager.DeleteKeyframeDataAsync(itemId, cancellationToken).ConfigureAwait(false);
-        await _mediaSegmentManager.DeleteSegmentsAsync(itemId, cancellationToken).ConfigureAwait(false);
-        await _trickplayManager.DeleteTrickplayDataAsync(itemId, cancellationToken).ConfigureAwait(false);
-        await _chapterManager.DeleteChapterDataAsync(itemId, cancellationToken).ConfigureAwait(false);
+        await keyframeManager.DeleteKeyframeDataAsync(itemId, cancellationToken).ConfigureAwait(false);
+        await mediaSegmentManager.DeleteSegmentsAsync(itemId, cancellationToken).ConfigureAwait(false);
+        await trickplayManager.DeleteTrickplayDataAsync(itemId, cancellationToken).ConfigureAwait(false);
+        await chapterManager.DeleteChapterDataAsync(itemId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public void DeleteExternalItemFiles(BaseItem item)
     {
-        foreach (var path in _pathManager.GetExtractedDataPaths(item))
+        foreach (var path in pathManager.GetExtractedDataPaths(item))
         {
             if (!Directory.Exists(path))
             {
@@ -76,8 +56,11 @@ public class ExternalDataManager : IExternalDataManager
             }
             catch (Exception ex)
             {
-                _logger.LogWarning("Unable to prune external item data at {Path}: {Exception}", path, ex);
+                LogPruneExternalDataFailed(path, ex.ToString());
             }
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Unable to prune external item data at {Path}: {Exception}")]
+    private partial void LogPruneExternalDataFailed(string path, string exception);
 }

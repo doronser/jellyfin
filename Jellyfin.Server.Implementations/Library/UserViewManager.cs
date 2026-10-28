@@ -24,29 +24,18 @@ using MediaBrowser.Model.Querying;
 
 namespace Jellyfin.Server.Implementations.Library;
 
-public class UserViewManager : IUserViewManager
+public class UserViewManager(
+    ILibraryManager libraryManager,
+    ILocalizationManager localizationManager,
+    IChannelManager channelManager,
+    ILiveTvManager liveTvManager,
+    IServerConfigurationManager config) : IUserViewManager
 {
-    private readonly ILibraryManager _libraryManager;
-    private readonly ILocalizationManager _localizationManager;
-
-    private readonly IChannelManager _channelManager;
-    private readonly ILiveTvManager _liveTvManager;
-    private readonly IServerConfigurationManager _config;
-
-    public UserViewManager(ILibraryManager libraryManager, ILocalizationManager localizationManager, IChannelManager channelManager, ILiveTvManager liveTvManager, IServerConfigurationManager config)
-    {
-        _libraryManager = libraryManager;
-        _localizationManager = localizationManager;
-        _channelManager = channelManager;
-        _liveTvManager = liveTvManager;
-        _config = config;
-    }
-
     public Folder[] GetUserViews(UserViewQuery query)
     {
         var user = query.User;
 
-        var folders = _libraryManager.GetUserRootFolder()
+        var folders = libraryManager.GetUserRootFolder()
             .GetChildren(user, true)
             .OfType<Folder>()
             .ToList();
@@ -74,7 +63,7 @@ public class UserViewManager : IUserViewManager
 
             if (UserView.IsUserSpecific(folder))
             {
-                list.Add(_libraryManager.GetNamedView(user, folder.Name, folder.Id, folderViewType, null));
+                list.Add(libraryManager.GetNamedView(user, folder.Name, folder.Id, folderViewType, null));
                 continue;
             }
 
@@ -109,15 +98,15 @@ public class UserViewManager : IUserViewManager
             }
         }
 
-        if (_config.Configuration.EnableFolderView)
+        if (config.Configuration.EnableFolderView)
         {
-            var name = _localizationManager.GetServerLocalizedString("Folders");
-            list.Add(_libraryManager.GetNamedView(name, CollectionType.folders, string.Empty));
+            var name = localizationManager.GetServerLocalizedString("Folders");
+            list.Add(libraryManager.GetNamedView(name, CollectionType.folders, string.Empty));
         }
 
         if (query.IncludeExternalContent)
         {
-            var channelResult = _channelManager.GetChannelsInternalAsync(new ChannelQuery
+            var channelResult = channelManager.GetChannelsInternalAsync(new ChannelQuery
             {
                 UserId = user.Id
             }).GetAwaiter().GetResult();
@@ -126,9 +115,9 @@ public class UserViewManager : IUserViewManager
 
             list.AddRange(channels);
 
-            if (_liveTvManager.IsEnabledForUser(user))
+            if (liveTvManager.IsEnabledForUser(user))
             {
-                list.Add(_liveTvManager.GetInternalLiveTvFolder(CancellationToken.None));
+                list.Add(liveTvManager.GetInternalLiveTvFolder(CancellationToken.None));
             }
         }
 
@@ -137,7 +126,7 @@ public class UserViewManager : IUserViewManager
             list = list.Where(i => !user.GetPreferenceValues<Guid>(PreferenceKind.MyMediaExcludes).Contains(i.Id)).ToList();
         }
 
-        var sorted = _libraryManager.Sort(list, user, [ItemSortBy.SortName], SortOrder.Ascending).ToList();
+        var sorted = libraryManager.Sort(list, user, [ItemSortBy.SortName], SortOrder.Ascending).ToList();
         var orders = user.GetPreferenceValues<Guid>(PreferenceKind.OrderedViews);
 
         return list
@@ -166,7 +155,7 @@ public class UserViewManager : IUserViewManager
             return false;
         }
 
-        var items = _libraryManager.GetItemList(new InternalItemsQuery(user)
+        var items = libraryManager.GetItemList(new InternalItemsQuery(user)
         {
             IncludeItemTypes = [itemKind],
             TopParentIds = topParentIds,
@@ -188,12 +177,12 @@ public class UserViewManager : IUserViewManager
     {
         var uniqueId = parentId + "subview" + type;
 
-        return _libraryManager.GetNamedView(name, parentId, type, sortName, uniqueId);
+        return libraryManager.GetNamedView(name, parentId, type, sortName, uniqueId);
     }
 
     public UserView GetUserSubView(Guid parentId, CollectionType? type, string localizationKey, string sortName)
     {
-        var name = _localizationManager.GetServerLocalizedString(localizationKey);
+        var name = localizationManager.GetServerLocalizedString(localizationKey);
 
         return GetUserSubViewWithName(name, parentId, type, sortName);
     }
@@ -216,13 +205,13 @@ public class UserViewManager : IUserViewManager
             return GetUserView((Folder)parents[0], viewType, string.Empty);
         }
 
-        var name = _localizationManager.GetServerLocalizedString(localizationKey);
-        return _libraryManager.GetNamedView(user, name, viewType, sortName);
+        var name = localizationManager.GetServerLocalizedString(localizationKey);
+        return libraryManager.GetNamedView(user, name, viewType, sortName);
     }
 
     public UserView GetUserView(Folder parent, CollectionType? viewType, string sortName)
     {
-        return _libraryManager.GetShadowView(parent, viewType, sortName);
+        return libraryManager.GetShadowView(parent, viewType, sortName);
     }
 
     public List<Tuple<BaseItem, List<BaseItem>>> GetLatestItems(LatestItemsQuery request, DtoOptions options)
@@ -270,10 +259,10 @@ public class UserViewManager : IUserViewManager
 
         if (!parentId.IsEmpty())
         {
-            var parentItem = _libraryManager.GetItemById(parentId);
+            var parentItem = libraryManager.GetItemById(parentId);
             if (parentItem is Channel)
             {
-                return _channelManager.GetLatestChannelItemsInternal(
+                return channelManager.GetLatestChannelItemsInternal(
                     new InternalItemsQuery(user)
                     {
                         ChannelIds = [parentId],
@@ -301,7 +290,7 @@ public class UserViewManager : IUserViewManager
 
         if (parents.Count == 0)
         {
-            parents = _libraryManager.GetUserRootFolder().GetChildren(user, true)
+            parents = libraryManager.GetUserRootFolder().GetChildren(user, true)
                 .Where(i => i is Folder)
                 .Where(i => !user.GetPreferenceValues<Guid>(PreferenceKind.LatestItemExcludes)
                     .Contains(i.Id))
@@ -407,28 +396,28 @@ public class UserViewManager : IUserViewManager
             if (collectionType == CollectionType.tvshows)
             {
                 query.Limit = limit;
-                return _libraryManager.GetLatestItemList(query, parents, CollectionType.tvshows);
+                return libraryManager.GetLatestItemList(query, parents, CollectionType.tvshows);
             }
 
             if (collectionType == CollectionType.music)
             {
                 query.Limit = limit;
-                return _libraryManager.GetLatestItemList(query, parents, CollectionType.music);
+                return libraryManager.GetLatestItemList(query, parents, CollectionType.music);
             }
 
             if (collectionType == CollectionType.movies)
             {
                 query.Limit = limit;
-                return _libraryManager.GetLatestItemList(query, parents, CollectionType.movies);
+                return libraryManager.GetLatestItemList(query, parents, CollectionType.movies);
             }
 
             if (collectionType is null)
             {
                 query.Limit = limit;
-                return _libraryManager.GetLatestItemList(query, parents, CollectionType.unknown);
+                return libraryManager.GetLatestItemList(query, parents, CollectionType.unknown);
             }
         }
 
-        return _libraryManager.GetItemList(query, parents);
+        return libraryManager.GetItemList(query, parents);
     }
 }

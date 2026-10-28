@@ -21,19 +21,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Server.Implementations.Library;
 
-public class LiveStreamHelper
+public partial class LiveStreamHelper(IMediaEncoder mediaEncoder, ILogger logger, IApplicationPaths appPaths)
 {
-    private readonly IMediaEncoder _mediaEncoder;
-    private readonly ILogger _logger;
-    private readonly IApplicationPaths _appPaths;
     private readonly JsonSerializerOptions _jsonOptions = JsonDefaults.Options;
-
-    public LiveStreamHelper(IMediaEncoder mediaEncoder, ILogger logger, IApplicationPaths appPaths)
-    {
-        _mediaEncoder = mediaEncoder;
-        _logger = logger;
-        _appPaths = appPaths;
-    }
 
     public async Task AddMediaInfoWithProbe(MediaSourceInfo mediaSource, bool isAudio, string? cacheKey, bool addProbeDelay, CancellationToken cancellationToken)
     {
@@ -42,7 +32,7 @@ public class LiveStreamHelper
         var now = DateTime.UtcNow;
 
         MediaInfo? mediaInfo = null;
-        var cacheFilePath = string.IsNullOrEmpty(cacheKey) ? null : Path.Combine(_appPaths.CachePath, "mediainfo", cacheKey.GetMD5().ToString("N", CultureInfo.InvariantCulture) + ".json");
+        var cacheFilePath = string.IsNullOrEmpty(cacheKey) ? null : Path.Combine(appPaths.CachePath, "mediainfo", cacheKey.GetMD5().ToString("N", CultureInfo.InvariantCulture) + ".json");
 
         if (cacheFilePath is not null)
         {
@@ -53,16 +43,16 @@ public class LiveStreamHelper
                 await using (jsonStream.ConfigureAwait(false))
                 {
                     mediaInfo = await JsonSerializer.DeserializeAsync<MediaInfo>(jsonStream, _jsonOptions, cancellationToken).ConfigureAwait(false);
-                    // _logger.LogDebug("Found cached media info");
+                    // logger.LogDebug("Found cached media info");
                 }
             }
             catch (IOException ex)
             {
-                _logger.LogDebug(ex, "Could not open cached media info");
+                LogCachedMediaInfoOpenFailed(ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error opening cached media info");
+                LogCachedMediaInfoError(ex);
             }
         }
 
@@ -72,13 +62,13 @@ public class LiveStreamHelper
             {
                 var delayMs = mediaSource.AnalyzeDurationMs ?? 0;
                 delayMs = Math.Max(3000, delayMs);
-                _logger.LogInformation("Waiting {0}ms before probing the live stream", delayMs);
+                LogProbeDelay(delayMs);
                 await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
             }
 
             mediaSource.AnalyzeDurationMs = 3000;
 
-            mediaInfo = await _mediaEncoder.GetMediaInfo(
+            mediaInfo = await mediaEncoder.GetMediaInfo(
                 new MediaInfoRequest
                 {
                     MediaSource = mediaSource,
@@ -96,7 +86,7 @@ public class LiveStreamHelper
                     await JsonSerializer.SerializeAsync(createStream, mediaInfo, _jsonOptions, cancellationToken).ConfigureAwait(false);
                 }
 
-                _logger.LogDebug("Saved media info to {0}", cacheFilePath);
+                LogSavedMediaInfo(cacheFilePath);
             }
         }
 
@@ -117,7 +107,7 @@ public class LiveStreamHelper
             mediaStreams = newList;
         }
 
-        _logger.LogInformation("Live tv media info probe took {0} seconds", (DateTime.UtcNow - now).TotalSeconds.ToString(CultureInfo.InvariantCulture));
+        LogProbeDuration((DateTime.UtcNow - now).TotalSeconds.ToString(CultureInfo.InvariantCulture));
 
         mediaSource.Bitrate = mediaInfo.Bitrate;
         mediaSource.Container = mediaInfo.Container;
@@ -187,4 +177,19 @@ public class LiveStreamHelper
     {
         return AddMediaInfoWithProbe(mediaSource, isAudio, null, addProbeDelay, cancellationToken);
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Could not open cached media info")]
+    private partial void LogCachedMediaInfoOpenFailed(Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error opening cached media info")]
+    private partial void LogCachedMediaInfoError(Exception exception);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Waiting {DelayMs}ms before probing the live stream")]
+    private partial void LogProbeDelay(int delayMs);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Saved media info to {CacheFilePath}")]
+    private partial void LogSavedMediaInfo(string cacheFilePath);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Live tv media info probe took {Seconds} seconds")]
+    private partial void LogProbeDuration(string seconds);
 }

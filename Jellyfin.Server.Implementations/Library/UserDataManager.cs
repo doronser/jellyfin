@@ -23,25 +23,13 @@ namespace Jellyfin.Server.Implementations.Library;
 /// <summary>
 /// Class UserDataManager.
 /// </summary>
-public class UserDataManager : IUserDataManager
+/// <param name="config">Instance of the <see cref="IServerConfigurationManager"/> interface.</param>
+/// <param name="repository">Instance of the <see cref="IDbContextFactory{JellyfinDbContext}"/> interface.</param>
+public class UserDataManager(
+    IServerConfigurationManager config,
+    IDbContextFactory<JellyfinDbContext> repository) : IUserDataManager
 {
-    private readonly IServerConfigurationManager _config;
-    private readonly IDbContextFactory<JellyfinDbContext> _repository;
-    private readonly FastConcurrentLru<string, UserItemData> _cache;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="UserDataManager"/> class.
-    /// </summary>
-    /// <param name="config">Instance of the <see cref="IServerConfigurationManager"/> interface.</param>
-    /// <param name="repository">Instance of the <see cref="IDbContextFactory{JellyfinDbContext}"/> interface.</param>
-    public UserDataManager(
-        IServerConfigurationManager config,
-        IDbContextFactory<JellyfinDbContext> repository)
-    {
-        _config = config;
-        _repository = repository;
-        _cache = new FastConcurrentLru<string, UserItemData>(Environment.ProcessorCount, _config.Configuration.CacheSize, StringComparer.OrdinalIgnoreCase);
-    }
+    private readonly FastConcurrentLru<string, UserItemData> _cache = new(Environment.ProcessorCount, config.Configuration.CacheSize, StringComparer.OrdinalIgnoreCase);
 
     /// <inheritdoc />
     public event EventHandler<UserDataSaveEventArgs>? UserDataSaved;
@@ -57,7 +45,7 @@ public class UserDataManager : IUserDataManager
 
         var keys = item.GetUserDataKeys();
 
-        using var dbContext = _repository.CreateDbContext();
+        using var dbContext = repository.CreateDbContext();
         using var transaction = dbContext.Database.BeginTransaction();
 
         foreach (var key in keys)
@@ -231,7 +219,7 @@ public class UserDataManager : IUserDataManager
         // Build a single query for all missing items. Fetch rows by item alone so rows kept
         // under keys from older metadata resolve the same way as the in-memory path.
         var allItemIds = itemsNeedingQuery.Select(x => x.Item.Id).ToList();
-        using var context = _repository.CreateDbContext();
+        using var context = repository.CreateDbContext();
         var userDataArray = context.UserData
             .AsNoTracking()
             .Where(e => e.UserId.Equals(user.Id))
@@ -301,7 +289,7 @@ public class UserDataManager : IUserDataManager
         HashSet<Guid>? withLocalAlternates = null;
         if (localProbeIds is not null)
         {
-            using var dbContext = _repository.CreateDbContext();
+            using var dbContext = repository.CreateDbContext();
             withLocalAlternates = dbContext.LinkedChildren
                 .Where(lc => lc.ChildType == Jellyfin.Database.Implementations.Entities.LinkedChildType.LocalAlternateVersion)
                 .WhereOneOrMany(localProbeIds, lc => lc.ParentId)
@@ -466,12 +454,12 @@ public class UserDataManager : IUserDataManager
         {
             var pctIn = decimal.Divide(positionTicks, runtimeTicks) * 100;
 
-            if (pctIn < _config.Configuration.MinResumePct)
+            if (pctIn < config.Configuration.MinResumePct)
             {
                 // ignore progress during the beginning
                 positionTicks = 0;
             }
-            else if (pctIn > _config.Configuration.MaxResumePct || positionTicks >= (runtimeTicks - TimeSpan.TicksPerSecond))
+            else if (pctIn > config.Configuration.MaxResumePct || positionTicks >= (runtimeTicks - TimeSpan.TicksPerSecond))
             {
                 // mark as completed close to the end
                 positionTicks = 0;
@@ -481,7 +469,7 @@ public class UserDataManager : IUserDataManager
             {
                 // Enforce MinResumeDuration
                 var durationSeconds = TimeSpan.FromTicks(runtimeTicks).TotalSeconds;
-                if (durationSeconds < _config.Configuration.MinResumeDurationSeconds)
+                if (durationSeconds < config.Configuration.MinResumeDurationSeconds)
                 {
                     positionTicks = 0;
                     data.Played = playedToCompletion = true;
@@ -493,12 +481,12 @@ public class UserDataManager : IUserDataManager
             var playbackPositionInMinutes = TimeSpan.FromTicks(positionTicks).TotalMinutes;
             var remainingTimeInMinutes = TimeSpan.FromTicks(runtimeTicks - positionTicks).TotalMinutes;
 
-            if (playbackPositionInMinutes < _config.Configuration.MinAudiobookResume)
+            if (playbackPositionInMinutes < config.Configuration.MinAudiobookResume)
             {
                 // ignore progress during the beginning
                 positionTicks = 0;
             }
-            else if (remainingTimeInMinutes < _config.Configuration.MaxAudiobookResume || positionTicks >= runtimeTicks)
+            else if (remainingTimeInMinutes < config.Configuration.MaxAudiobookResume || positionTicks >= runtimeTicks)
             {
                 // mark as completed close to the end
                 positionTicks = 0;
@@ -534,7 +522,7 @@ public class UserDataManager : IUserDataManager
         ArgumentNullException.ThrowIfNull(user);
         ArgumentNullException.ThrowIfNull(item);
 
-        using var dbContext = _repository.CreateDbContext();
+        using var dbContext = repository.CreateDbContext();
         var rows = dbContext.UserData
             .Where(e => e.ItemId == item.Id && e.UserId == user.Id
                         && (e.AudioStreamIndex != null || e.SubtitleStreamIndex != null))

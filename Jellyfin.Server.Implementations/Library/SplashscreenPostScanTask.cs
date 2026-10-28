@@ -18,28 +18,14 @@ namespace Jellyfin.Server.Implementations.Library;
 /// <summary>
 /// The splashscreen post scan task.
 /// </summary>
-public class SplashscreenPostScanTask : ILibraryPostScanTask
+/// <param name="itemRepository">Instance of the <see cref="IItemRepository"/> interface.</param>
+/// <param name="imageEncoder">Instance of the <see cref="IImageEncoder"/> interface.</param>
+/// <param name="logger">Instance of the <see cref="ILogger{SplashscreenPostScanTask}"/> interface.</param>
+public partial class SplashscreenPostScanTask(
+    IItemRepository itemRepository,
+    IImageEncoder imageEncoder,
+    ILogger<SplashscreenPostScanTask> logger) : ILibraryPostScanTask
 {
-    private readonly IItemRepository _itemRepository;
-    private readonly IImageEncoder _imageEncoder;
-    private readonly ILogger<SplashscreenPostScanTask> _logger;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SplashscreenPostScanTask"/> class.
-    /// </summary>
-    /// <param name="itemRepository">Instance of the <see cref="IItemRepository"/> interface.</param>
-    /// <param name="imageEncoder">Instance of the <see cref="IImageEncoder"/> interface.</param>
-    /// <param name="logger">Instance of the <see cref="ILogger{SplashscreenPostScanTask}"/> interface.</param>
-    public SplashscreenPostScanTask(
-        IItemRepository itemRepository,
-        IImageEncoder imageEncoder,
-        ILogger<SplashscreenPostScanTask> logger)
-    {
-        _itemRepository = itemRepository;
-        _imageEncoder = imageEncoder;
-        _logger = logger;
-    }
-
     /// <inheritdoc />
     public Task Run(IProgress<double> progress, CancellationToken cancellationToken)
     {
@@ -57,7 +43,7 @@ public class SplashscreenPostScanTask : ILibraryPostScanTask
         {
             // Thumb images fit better because they include the title in the image but are not provided with TMDb.
             // Using backdrops as a fallback to generate an image at all
-            _logger.LogDebug("No thumb images found. Using backdrops to generate splashscreen");
+            LogNoThumbImages();
             backdrops = GetItemsWithImageType(ImageType.Backdrop)
                 .Select(x => x.GetImages(ImageType.Backdrop).FirstOrDefault()?.Path)
                 .Where(path => !string.IsNullOrEmpty(path))
@@ -65,14 +51,14 @@ public class SplashscreenPostScanTask : ILibraryPostScanTask
                 .ToList();
         }
 
-        _imageEncoder.CreateSplashscreen(posters, backdrops);
+        imageEncoder.CreateSplashscreen(posters, backdrops);
         return Task.CompletedTask;
     }
 
     private IReadOnlyList<BaseItem> GetItemsWithImageType(ImageType imageType)
     {
         // TODO make included libraries configurable
-        return _itemRepository.GetItemList(new InternalItemsQuery
+        return itemRepository.GetItemList(new InternalItemsQuery
         {
             CollapseBoxSetItems = false,
             Recursive = true,
@@ -88,4 +74,7 @@ public class SplashscreenPostScanTask : ILibraryPostScanTask
             IncludeItemTypes = [BaseItemKind.Movie, BaseItemKind.Series]
         });
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "No thumb images found. Using backdrops to generate splashscreen")]
+    private partial void LogNoThumbImages();
 }

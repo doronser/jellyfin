@@ -14,31 +14,17 @@ namespace Jellyfin.Server.Implementations.Library;
 /// <summary>
 /// IPathManager implementation.
 /// </summary>
-public class PathManager : IPathManager
+/// <param name="logger">The logger.</param>
+/// <param name="config">The server configuration manager.</param>
+/// <param name="appPaths">The application paths.</param>
+public partial class PathManager(
+    ILogger<PathManager> logger,
+    IServerConfigurationManager config,
+    IApplicationPaths appPaths) : IPathManager
 {
-    private readonly ILogger<PathManager> _logger;
-    private readonly IServerConfigurationManager _config;
-    private readonly IApplicationPaths _appPaths;
+    private string SubtitleCachePath => Path.Combine(appPaths.DataPath, "subtitles");
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PathManager"/> class.
-    /// </summary>
-    /// <param name="logger">The logger.</param>
-    /// <param name="config">The server configuration manager.</param>
-    /// <param name="appPaths">The application paths.</param>
-    public PathManager(
-        ILogger<PathManager> logger,
-        IServerConfigurationManager config,
-        IApplicationPaths appPaths)
-    {
-        _logger = logger;
-        _config = config;
-        _appPaths = appPaths;
-    }
-
-    private string SubtitleCachePath => Path.Combine(_appPaths.DataPath, "subtitles");
-
-    private string AttachmentCachePath => Path.Combine(_appPaths.DataPath, "attachments");
+    private string AttachmentCachePath => Path.Combine(appPaths.DataPath, "attachments");
 
     /// <inheritdoc />
     public string? GetAttachmentPath(string mediaSourceId, string fileName)
@@ -52,7 +38,7 @@ public class PathManager : IPathManager
         var safeName = PathHelper.GetSafeLeafFileName(fileName);
         if (safeName is null)
         {
-            _logger.LogWarning("Rejecting attachment filename '{FileName}' for MediaSource {MediaSourceId}: not a valid leaf name.", fileName, mediaSourceId);
+            LogRejectedAttachmentFileName(fileName, mediaSourceId);
             return null;
         }
 
@@ -64,7 +50,7 @@ public class PathManager : IPathManager
     {
         if (!Guid.TryParse(mediaSourceId, out var parsed))
         {
-            _logger.LogDebug("MediaSource Id '{MediaSourceId}' is not a GUID; no on-disk attachment folder.", mediaSourceId);
+            LogNoAttachmentFolder(mediaSourceId);
             return null;
         }
 
@@ -77,7 +63,7 @@ public class PathManager : IPathManager
     {
         if (!Guid.TryParse(mediaSourceId, out var parsed))
         {
-            _logger.LogDebug("MediaSource Id '{MediaSourceId}' is not a GUID; no on-disk subtitle folder.", mediaSourceId);
+            LogNoSubtitleFolder(mediaSourceId);
             return null;
         }
 
@@ -99,7 +85,7 @@ public class PathManager : IPathManager
 
         return saveWithMedia
             ? Path.Combine(item.ContainingFolderPath, Path.ChangeExtension(Path.GetFileName(item.Path), ".trickplay"))
-            : Path.Join(_config.ApplicationPaths.TrickplayPath, id[..2], id);
+            : Path.Join(config.ApplicationPaths.TrickplayPath, id[..2], id);
     }
 
     /// <inheritdoc/>
@@ -143,4 +129,13 @@ public class PathManager : IPathManager
 
         return paths;
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Rejecting attachment filename '{FileName}' for MediaSource {MediaSourceId}: not a valid leaf name.")]
+    private partial void LogRejectedAttachmentFileName(string fileName, string mediaSourceId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "MediaSource Id '{MediaSourceId}' is not a GUID; no on-disk attachment folder.")]
+    private partial void LogNoAttachmentFolder(string mediaSourceId);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "MediaSource Id '{MediaSourceId}' is not a GUID; no on-disk subtitle folder.")]
+    private partial void LogNoSubtitleFolder(string mediaSourceId);
 }

@@ -13,133 +13,115 @@ using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Globalization;
 using Microsoft.Extensions.Logging;
 
-namespace Jellyfin.Server.Implementations.Library.Resolvers.TV
+namespace Jellyfin.Server.Implementations.Library.Resolvers.TV;
+
+/// <summary>
+/// Class SeasonResolver.
+/// </summary>
+/// <param name="namingOptions">The naming options.</param>
+/// <param name="localization">The localization.</param>
+/// <param name="logger">The logger.</param>
+public partial class SeasonResolver(
+    NamingOptions namingOptions,
+    ILocalizationManager localization,
+    ILogger<SeasonResolver> logger) : GenericFolderResolver<Season>
 {
     /// <summary>
-    /// Class SeasonResolver.
+    /// Resolves the specified args.
     /// </summary>
-    public class SeasonResolver : GenericFolderResolver<Season>
+    /// <param name="args">The args.</param>
+    /// <returns>Season.</returns>
+    protected override Season Resolve(ItemResolveArgs args)
     {
-        private readonly ILocalizationManager _localization;
-        private readonly ILogger<SeasonResolver> _logger;
-        private readonly NamingOptions _namingOptions;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SeasonResolver"/> class.
-        /// </summary>
-        /// <param name="namingOptions">The naming options.</param>
-        /// <param name="localization">The localization.</param>
-        /// <param name="logger">The logger.</param>
-        public SeasonResolver(
-            NamingOptions namingOptions,
-            ILocalizationManager localization,
-            ILogger<SeasonResolver> logger)
+        if (args.Parent is Series series && args.IsDirectory)
         {
-            _namingOptions = namingOptions;
-            _localization = localization;
-            _logger = logger;
-        }
+            var path = args.Path;
 
-        /// <summary>
-        /// Resolves the specified args.
-        /// </summary>
-        /// <param name="args">The args.</param>
-        /// <returns>Season.</returns>
-        protected override Season Resolve(ItemResolveArgs args)
-        {
-            if (args.Parent is Series series && args.IsDirectory)
+            var seasonParserResult = SeasonPathParser.Parse(path, series.ContainingFolderPath, true, true);
+
+            var season = new Season
             {
-                var namingOptions = _namingOptions;
+                IndexNumber = seasonParserResult.SeasonNumber,
+                SeriesId = series.Id,
+                SeriesName = series.Name,
+                Path = seasonParserResult.IsSeasonFolder ? path : null
+            };
 
-                var path = args.Path;
+            if (!season.IndexNumber.HasValue || !seasonParserResult.IsSeasonFolder)
+            {
+                var resolver = new Jellyfin.Naming.TV.EpisodeResolver(namingOptions);
 
-                var seasonParserResult = SeasonPathParser.Parse(path, series.ContainingFolderPath, true, true);
+                var folderName = System.IO.Path.GetFileName(path);
+                var testPath = @"\\test\" + folderName;
 
-                var season = new Season
+                var episodeInfo = resolver.Resolve(testPath, true);
+
+                if (episodeInfo?.EpisodeNumber is not null && episodeInfo.SeasonNumber.HasValue)
                 {
-                    IndexNumber = seasonParserResult.SeasonNumber,
-                    SeriesId = series.Id,
-                    SeriesName = series.Name,
-                    Path = seasonParserResult.IsSeasonFolder ? path : null
-                };
+                    LogFolderWithEpisodeNumber(path, episodeInfo.SeasonNumber.Value, episodeInfo.EpisodeNumber.Value);
 
-                if (!season.IndexNumber.HasValue || !seasonParserResult.IsSeasonFolder)
-                {
-                    var resolver = new Jellyfin.Naming.TV.EpisodeResolver(namingOptions);
-
-                    var folderName = System.IO.Path.GetFileName(path);
-                    var testPath = @"\\test\" + folderName;
-
-                    var episodeInfo = resolver.Resolve(testPath, true);
-
-                    if (episodeInfo?.EpisodeNumber is not null && episodeInfo.SeasonNumber.HasValue)
-                    {
-                        _logger.LogDebug(
-                            "Found folder underneath series with episode number: {0}. Season {1}. Episode {2}",
-                            path,
-                            episodeInfo.SeasonNumber.Value,
-                            episodeInfo.EpisodeNumber.Value);
-
-                        return null;
-                    }
-
-                    var hasAnyVideo = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
-                        .Any(file => _namingOptions.VideoFileExtensions.Contains(Path.GetExtension(file)));
-
-                    if (!hasAnyVideo)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
 
-                if (season.IndexNumber.HasValue && string.IsNullOrEmpty(season.Name))
+                var hasAnyVideo = Directory.EnumerateFiles(path, "*", SearchOption.AllDirectories)
+                    .Any(file => namingOptions.VideoFileExtensions.Contains(Path.GetExtension(file)));
+
+                if (!hasAnyVideo)
                 {
-                    var seasonNumber = season.IndexNumber.Value;
-                    season.Name = seasonNumber == 0 ?
-                        args.LibraryOptions.SeasonZeroDisplayName :
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            _localization.GetServerLocalizedString("NameSeasonNumber"),
-                            seasonNumber,
-                            args.LibraryOptions.PreferredMetadataLanguage);
+                    return null;
                 }
-
-                SetProviderIdFromPath(season, path);
-
-                return season;
             }
 
-            return null;
+            if (season.IndexNumber.HasValue && string.IsNullOrEmpty(season.Name))
+            {
+                var seasonNumber = season.IndexNumber.Value;
+                season.Name = seasonNumber == 0 ?
+                    args.LibraryOptions.SeasonZeroDisplayName :
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        localization.GetServerLocalizedString("NameSeasonNumber"),
+                        seasonNumber,
+                        args.LibraryOptions.PreferredMetadataLanguage);
+            }
+
+            SetProviderIdFromPath(season, path);
+
+            return season;
         }
 
-        /// <summary>
-        /// Sets provider ids from the season folder name.
-        /// </summary>
-        /// <param name="item">The season.</param>
-        /// <param name="path">The season folder path.</param>
-        private static void SetProviderIdFromPath(Season item, string path)
-        {
-            var justName = Path.GetFileName(path.AsSpan());
-
-            var tvdbId = justName.GetAttributeValue("tvdbid");
-            item.TrySetProviderId(MetadataProvider.Tvdb, tvdbId);
-
-            var tvmazeId = justName.GetAttributeValue("tvmazeid");
-            item.TrySetProviderId(MetadataProvider.TvMaze, tvmazeId);
-
-            var tmdbId = justName.GetAttributeValue("tmdbid");
-            item.TrySetProviderId(MetadataProvider.Tmdb, tmdbId);
-
-            // Anime databases model a single cour as its own entry, so a multi-season
-            // series maps to one of these ids per season rather than one per series.
-            var anidbId = justName.GetAttributeValue("anidbid");
-            item.TrySetProviderId("AniDB", anidbId);
-
-            var aniListId = justName.GetAttributeValue("anilistid");
-            item.TrySetProviderId("AniList", aniListId);
-
-            var aniSearchId = justName.GetAttributeValue("anisearchid");
-            item.TrySetProviderId("AniSearch", aniSearchId);
-        }
+        return null;
     }
+
+    /// <summary>
+    /// Sets provider ids from the season folder name.
+    /// </summary>
+    /// <param name="item">The season.</param>
+    /// <param name="path">The season folder path.</param>
+    private static void SetProviderIdFromPath(Season item, string path)
+    {
+        var justName = Path.GetFileName(path.AsSpan());
+
+        var tvdbId = justName.GetAttributeValue("tvdbid");
+        item.TrySetProviderId(MetadataProvider.Tvdb, tvdbId);
+
+        var tvmazeId = justName.GetAttributeValue("tvmazeid");
+        item.TrySetProviderId(MetadataProvider.TvMaze, tvmazeId);
+
+        var tmdbId = justName.GetAttributeValue("tmdbid");
+        item.TrySetProviderId(MetadataProvider.Tmdb, tmdbId);
+
+        // Anime databases model a single cour as its own entry, so a multi-season
+        // series maps to one of these ids per season rather than one per series.
+        var anidbId = justName.GetAttributeValue("anidbid");
+        item.TrySetProviderId("AniDB", anidbId);
+
+        var aniListId = justName.GetAttributeValue("anilistid");
+        item.TrySetProviderId("AniList", aniListId);
+
+        var aniSearchId = justName.GetAttributeValue("anisearchid");
+        item.TrySetProviderId("AniSearch", aniSearchId);
+    }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Found folder underneath series with episode number: {Path}. Season {SeasonNumber}. Episode {EpisodeNumber}")]
+    private partial void LogFolderWithEpisodeNumber(string path, int seasonNumber, int episodeNumber);
 }

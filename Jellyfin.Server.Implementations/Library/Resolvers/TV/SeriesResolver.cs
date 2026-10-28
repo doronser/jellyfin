@@ -21,22 +21,10 @@ namespace Jellyfin.Server.Implementations.Library.Resolvers.TV;
 /// <summary>
 /// Class SeriesResolver.
 /// </summary>
-public class SeriesResolver : GenericFolderResolver<Series>
+/// <param name="logger">The logger.</param>
+/// <param name="namingOptions">The naming options.</param>
+public partial class SeriesResolver(ILogger<SeriesResolver> logger, NamingOptions namingOptions) : GenericFolderResolver<Series>
 {
-    private readonly ILogger<SeriesResolver> _logger;
-    private readonly NamingOptions _namingOptions;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SeriesResolver"/> class.
-    /// </summary>
-    /// <param name="logger">The logger.</param>
-    /// <param name="namingOptions">The naming options.</param>
-    public SeriesResolver(ILogger<SeriesResolver> logger, NamingOptions namingOptions)
-    {
-        _logger = logger;
-        _namingOptions = namingOptions;
-    }
-
     /// <summary>
     /// Gets the priority.
     /// </summary>
@@ -62,7 +50,7 @@ public class SeriesResolver : GenericFolderResolver<Series>
                 return null;
             }
 
-            var seriesInfo = Jellyfin.Naming.TV.SeriesResolver.Resolve(_namingOptions, args.Path);
+            var seriesInfo = Jellyfin.Naming.TV.SeriesResolver.Resolve(namingOptions, args.Path);
 
             var collectionType = args.GetCollectionType();
             if (collectionType == CollectionType.tvshows)
@@ -126,21 +114,19 @@ public class SeriesResolver : GenericFolderResolver<Series>
             {
                 if (IsSeasonFolder(child.FullName, path, isTvContentType))
                 {
-                    _logger.LogDebug("{Path} is a series because of season folder {Dir}.", path, child.FullName);
+                    LogSeriesBySeasonFolder(path, child.FullName);
                     return true;
                 }
             }
             else
             {
                 string fullName = child.FullName;
-                if (VideoResolver.IsVideoFile(path, _namingOptions))
+                if (VideoResolver.IsVideoFile(path, namingOptions))
                 {
                     if (isTvContentType)
                     {
                         return true;
                     }
-
-                    var namingOptions = _namingOptions;
 
                     var episodeResolver = new Jellyfin.Naming.TV.EpisodeResolver(namingOptions);
 
@@ -153,7 +139,7 @@ public class SeriesResolver : GenericFolderResolver<Series>
             }
         }
 
-        _logger.LogDebug("{Path} is not a series folder.", path);
+        LogNotSeriesFolder(path);
         return false;
     }
 
@@ -213,4 +199,10 @@ public class SeriesResolver : GenericFolderResolver<Series>
         var aniSearchId = justName.GetAttributeValue("anisearchid");
         item.TrySetProviderId("AniSearch", aniSearchId);
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{Path} is a series because of season folder {Dir}.")]
+    private partial void LogSeriesBySeasonFolder(string path, string dir);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "{Path} is not a series folder.")]
+    private partial void LogNotSeriesFolder(string path);
 }

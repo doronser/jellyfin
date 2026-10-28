@@ -14,22 +14,10 @@ namespace Jellyfin.Server.Implementations.Library.Resolvers;
 /// <summary>
 /// Class PhotoAlbumResolver.
 /// </summary>
-public class PhotoAlbumResolver : GenericFolderResolver<PhotoAlbum>
+/// <param name="imageProcessor">The image processor.</param>
+/// <param name="namingOptions">The naming options.</param>
+public class PhotoAlbumResolver(IImageProcessor imageProcessor, NamingOptions namingOptions) : GenericFolderResolver<PhotoAlbum>
 {
-    private readonly IImageProcessor _imageProcessor;
-    private readonly NamingOptions _namingOptions;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PhotoAlbumResolver"/> class.
-    /// </summary>
-    /// <param name="imageProcessor">The image processor.</param>
-    /// <param name="namingOptions">The naming options.</param>
-    public PhotoAlbumResolver(IImageProcessor imageProcessor, NamingOptions namingOptions)
-    {
-        _imageProcessor = imageProcessor;
-        _namingOptions = namingOptions;
-    }
-
     /// <inheritdoc />
     public override ResolverPriority Priority => ResolverPriority.Second;
 
@@ -68,14 +56,14 @@ public class PhotoAlbumResolver : GenericFolderResolver<PhotoAlbum>
 
         foreach (var file in files)
         {
-            if (!file.IsDirectory && PhotoResolver.IsImageFile(file.FullName, _imageProcessor))
+            if (!file.IsDirectory && PhotoResolver.IsImageFile(file.FullName, imageProcessor))
             {
                 var filename = file.Name;
                 var ownedByMedia = false;
 
                 foreach (var siblingFile in files)
                 {
-                    if (PhotoResolver.IsOwnedByMedia(_namingOptions, siblingFile.FullName, filename))
+                    if (PhotoResolver.IsOwnedByMedia(namingOptions, siblingFile.FullName, filename))
                     {
                         ownedByMedia = true;
                         break;

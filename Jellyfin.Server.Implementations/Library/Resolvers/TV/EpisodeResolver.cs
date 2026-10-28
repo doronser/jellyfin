@@ -17,19 +17,14 @@ namespace Jellyfin.Server.Implementations.Library.Resolvers.TV;
 /// <summary>
 /// Class EpisodeResolver.
 /// </summary>
-public class EpisodeResolver : BaseVideoResolver<Episode>
+/// <param name="logger">The logger.</param>
+/// <param name="namingOptions">The naming options.</param>
+/// <param name="directoryService">The directory service.</param>
+public class EpisodeResolver(
+    ILogger<EpisodeResolver> logger,
+    NamingOptions namingOptions,
+    IDirectoryService directoryService) : BaseVideoResolver<Episode>(logger, namingOptions, directoryService)
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="EpisodeResolver"/> class.
-    /// </summary>
-    /// <param name="logger">The logger.</param>
-    /// <param name="namingOptions">The naming options.</param>
-    /// <param name="directoryService">The directory service.</param>
-    public EpisodeResolver(ILogger<EpisodeResolver> logger, NamingOptions namingOptions, IDirectoryService directoryService)
-        : base(logger, namingOptions, directoryService)
-    {
-    }
-
     /// <summary>
     /// Resolves the specified args.
     /// </summary>

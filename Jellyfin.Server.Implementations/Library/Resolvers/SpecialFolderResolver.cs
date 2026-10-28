@@ -14,17 +14,8 @@ using MediaBrowser.Model.IO;
 
 namespace Jellyfin.Server.Implementations.Library.Resolvers;
 
-public class SpecialFolderResolver : GenericFolderResolver<Folder>
+public class SpecialFolderResolver(IFileSystem fileSystem, IServerApplicationPaths appPaths) : GenericFolderResolver<Folder>
 {
-    private readonly IFileSystem _fileSystem;
-    private readonly IServerApplicationPaths _appPaths;
-
-    public SpecialFolderResolver(IFileSystem fileSystem, IServerApplicationPaths appPaths)
-    {
-        _fileSystem = fileSystem;
-        _appPaths = appPaths;
-    }
-
     /// <summary>
     /// Gets the priority.
     /// </summary>
@@ -45,7 +36,7 @@ public class SpecialFolderResolver : GenericFolderResolver<Folder>
                 return new AggregateFolder();
             }
 
-            if (string.Equals(args.Path, _appPaths.DefaultUserViewsPath, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(args.Path, appPaths.DefaultUserViewsPath, StringComparison.OrdinalIgnoreCase))
             {
                 return new UserRootFolder();  // if we got here and still a root - must be user root
             }
@@ -78,7 +69,7 @@ public class SpecialFolderResolver : GenericFolderResolver<Folder>
                     return false;
                 }
             })
-            .Select(i => _fileSystem.GetFileNameWithoutExtension(i))
+            .Select(i => fileSystem.GetFileNameWithoutExtension(i))
             .Select(i => Enum.TryParse<CollectionType>(i, out var collectionType) ? collectionType : (CollectionType?)null)
             .FirstOrDefault(i => i is not null);
     }

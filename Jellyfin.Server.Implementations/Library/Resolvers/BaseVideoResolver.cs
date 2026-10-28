@@ -20,7 +20,7 @@ namespace Jellyfin.Server.Implementations.Library.Resolvers;
 /// Resolves a Path into a Video or Video subclass.
 /// </summary>
 /// <typeparam name="T">The type of item to resolve.</typeparam>
-public abstract class BaseVideoResolver<T> : MediaBrowser.Controller.Resolvers.ItemResolver<T>
+public abstract partial class BaseVideoResolver<T> : MediaBrowser.Controller.Resolvers.ItemResolver<T>
     where T : Video, new()
 {
     private readonly ILogger _logger;
@@ -192,7 +192,7 @@ public abstract class BaseVideoResolver<T> : MediaBrowser.Controller.Resolvers.I
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error opening UDF/ISO image: {Value}", video.Path ?? video.Name);
+                    LogUdfImageOpenFailed(ex, video.Path ?? video.Name);
                 }
             }
         }
@@ -285,4 +285,7 @@ public abstract class BaseVideoResolver<T> : MediaBrowser.Controller.Resolvers.I
     {
         return string.Equals(directoryName, "bdmv", StringComparison.OrdinalIgnoreCase);
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error opening UDF/ISO image: {Value}")]
+    private partial void LogUdfImageOpenFailed(Exception exception, string value);
 }

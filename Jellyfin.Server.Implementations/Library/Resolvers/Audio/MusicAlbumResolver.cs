@@ -21,25 +21,14 @@ namespace Jellyfin.Server.Implementations.Library.Resolvers.Audio;
 /// <summary>
 /// The music album resolver.
 /// </summary>
-public class MusicAlbumResolver : ItemResolver<MusicAlbum>
+/// <param name="logger">The logger.</param>
+/// <param name="namingOptions">The naming options.</param>
+/// <param name="directoryService">The directory service.</param>
+public partial class MusicAlbumResolver(
+    ILogger<MusicAlbumResolver> logger,
+    NamingOptions namingOptions,
+    IDirectoryService directoryService) : ItemResolver<MusicAlbum>
 {
-    private readonly ILogger<MusicAlbumResolver> _logger;
-    private readonly NamingOptions _namingOptions;
-    private readonly IDirectoryService _directoryService;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="MusicAlbumResolver"/> class.
-    /// </summary>
-    /// <param name="logger">The logger.</param>
-    /// <param name="namingOptions">The naming options.</param>
-    /// <param name="directoryService">The directory service.</param>
-    public MusicAlbumResolver(ILogger<MusicAlbumResolver> logger, NamingOptions namingOptions, IDirectoryService directoryService)
-    {
-        _logger = logger;
-        _namingOptions = namingOptions;
-        _directoryService = directoryService;
-    }
-
     /// <summary>
     /// Gets the priority.
     /// </summary>
@@ -102,17 +91,17 @@ public class MusicAlbumResolver : ItemResolver<MusicAlbum>
         if (args.IsDirectory)
         {
             // If args is a artist subfolder it's not a music album
-            foreach (var subfolder in _namingOptions.ArtistSubfolders)
+            foreach (var subfolder in namingOptions.ArtistSubfolders)
             {
                 if (Path.GetDirectoryName(args.Path.AsSpan()).Equals(subfolder, StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger.LogDebug("Found release folder: {Path}", args.Path);
+                    LogFoundReleaseFolder(args.Path);
                     return false;
                 }
             }
 
             // If args contains music it's a music album
-            if (ContainsMusic(args.FileSystemChildren, true, _directoryService))
+            if (ContainsMusic(args.FileSystemChildren, true, directoryService))
             {
                 return true;
             }
@@ -131,7 +120,7 @@ public class MusicAlbumResolver : ItemResolver<MusicAlbum>
         IDirectoryService directoryService)
     {
         // Check for audio files before digging down into directories
-        var foundAudioFile = list.Any(fileSystemInfo => !fileSystemInfo.IsDirectory && AudioFileParser.IsAudioFile(fileSystemInfo.FullName, _namingOptions));
+        var foundAudioFile = list.Any(fileSystemInfo => !fileSystemInfo.IsDirectory && AudioFileParser.IsAudioFile(fileSystemInfo.FullName, namingOptions));
         if (foundAudioFile)
         {
             // At least one audio file exists
@@ -146,7 +135,7 @@ public class MusicAlbumResolver : ItemResolver<MusicAlbum>
 
         var discSubfolderCount = 0;
 
-        var parser = new AlbumParser(_namingOptions);
+        var parser = new AlbumParser(namingOptions);
 
         var directories = list.Where(fileSystemInfo => fileSystemInfo.IsDirectory);
 
@@ -159,7 +148,7 @@ public class MusicAlbumResolver : ItemResolver<MusicAlbum>
             {
                 if (parser.IsMultiPart(path))
                 {
-                    _logger.LogDebug("Found multi-disc folder: {Path}", path);
+                    LogFoundMultiDiscFolder(path);
                     Interlocked.Increment(ref discSubfolderCount);
                 }
                 else
@@ -177,4 +166,10 @@ public class MusicAlbumResolver : ItemResolver<MusicAlbum>
 
         return discSubfolderCount > 0;
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Found release folder: {Path}")]
+    private partial void LogFoundReleaseFolder(string path);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Found multi-disc folder: {Path}")]
+    private partial void LogFoundMultiDiscFolder(string path);
 }

@@ -22,15 +22,8 @@ namespace Jellyfin.Server.Implementations.Library.Resolvers.Audio;
 /// <summary>
 /// Class AudioResolver.
 /// </summary>
-public class AudioResolver : ItemResolver<MediaBrowser.Controller.Entities.Audio.Audio>, IMultiItemResolver
+public class AudioResolver(NamingOptions namingOptions) : ItemResolver<MediaBrowser.Controller.Entities.Audio.Audio>, IMultiItemResolver
 {
-    private readonly NamingOptions _namingOptions;
-
-    public AudioResolver(NamingOptions namingOptions)
-    {
-        _namingOptions = namingOptions;
-    }
-
     /// <summary>
     /// Gets the priority.
     /// </summary>
@@ -92,7 +85,7 @@ public class AudioResolver : ItemResolver<MediaBrowser.Controller.Entities.Audio
             return FindAudioBook(args, false);
         }
 
-        if (AudioFileParser.IsAudioFile(args.Path, _namingOptions))
+        if (AudioFileParser.IsAudioFile(args.Path, namingOptions))
         {
             var extension = Path.GetExtension(args.Path.AsSpan());
 
@@ -105,7 +98,7 @@ public class AudioResolver : ItemResolver<MediaBrowser.Controller.Entities.Audio
             var isMixedCollectionType = collectionType is null;
 
             // For conflicting extensions, give priority to videos
-            if (isMixedCollectionType && VideoResolver.IsVideoFile(args.Path, _namingOptions))
+            if (isMixedCollectionType && VideoResolver.IsVideoFile(args.Path, namingOptions))
             {
                 return null;
             }
@@ -173,7 +166,7 @@ public class AudioResolver : ItemResolver<MediaBrowser.Controller.Entities.Audio
             }
         }
 
-        var resolver = new AudioBookListResolver(_namingOptions);
+        var resolver = new AudioBookListResolver(namingOptions);
         var resolverResult = resolver.Resolve(files).ToList();
 
         var result = new MultiItemResolverResult

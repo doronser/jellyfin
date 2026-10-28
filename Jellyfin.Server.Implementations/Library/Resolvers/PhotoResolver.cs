@@ -17,12 +17,14 @@ namespace Jellyfin.Server.Implementations.Library.Resolvers;
 /// <summary>
 /// Class PhotoResolver.
 /// </summary>
-public class PhotoResolver : ItemResolver<Photo>
+/// <param name="imageProcessor">The image processor.</param>
+/// <param name="namingOptions">The naming options.</param>
+/// <param name="directoryService">The directory service.</param>
+public class PhotoResolver(
+    IImageProcessor imageProcessor,
+    NamingOptions namingOptions,
+    IDirectoryService directoryService) : ItemResolver<Photo>
 {
-    private readonly IImageProcessor _imageProcessor;
-    private readonly NamingOptions _namingOptions;
-    private readonly IDirectoryService _directoryService;
-
     private static readonly string[] _ignoreFiles = new[]
     {
         "folder",
@@ -35,19 +37,6 @@ public class PhotoResolver : ItemResolver<Photo>
         "logo",
         "default"
     };
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="PhotoResolver"/> class.
-    /// </summary>
-    /// <param name="imageProcessor">The image processor.</param>
-    /// <param name="namingOptions">The naming options.</param>
-    /// <param name="directoryService">The directory service.</param>
-    public PhotoResolver(IImageProcessor imageProcessor, NamingOptions namingOptions, IDirectoryService directoryService)
-    {
-        _imageProcessor = imageProcessor;
-        _namingOptions = namingOptions;
-        _directoryService = directoryService;
-    }
 
     /// <summary>
     /// Resolves the specified args.
@@ -64,17 +53,17 @@ public class PhotoResolver : ItemResolver<Photo>
             if (collectionType == CollectionType.photos
                 || (collectionType == CollectionType.homevideos && args.LibraryOptions.EnablePhotos))
             {
-                if (IsImageFile(args.Path, _imageProcessor))
+                if (IsImageFile(args.Path, imageProcessor))
                 {
                     var filename = Path.GetFileNameWithoutExtension(args.Path.AsSpan());
 
                     // Make sure the image doesn't belong to a video file
-                    var files = _directoryService.GetFiles(Path.GetDirectoryName(args.Path)
+                    var files = directoryService.GetFiles(Path.GetDirectoryName(args.Path)
                         ?? throw new InvalidOperationException("Path can't be a root directory."));
 
                     foreach (var file in files)
                     {
-                        if (IsOwnedByMedia(_namingOptions, file.FullName, filename))
+                        if (IsOwnedByMedia(namingOptions, file.FullName, filename))
                         {
                             return null;
                         }
