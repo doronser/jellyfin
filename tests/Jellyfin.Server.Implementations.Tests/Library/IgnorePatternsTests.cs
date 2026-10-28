@@ -1,4 +1,4 @@
-using Emby.Server.Implementations.Library;
+using Jellyfin.Server.Implementations.Library;
 using Xunit;
 
 namespace Jellyfin.Server.Implementations.Tests.Library

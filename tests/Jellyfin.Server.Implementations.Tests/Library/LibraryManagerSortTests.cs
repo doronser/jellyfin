@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AutoFixture;
 using AutoFixture.AutoMoq;
-using Emby.Server.Implementations.Library;
 using Jellyfin.Data.Enums;
 using Jellyfin.Database.Implementations.Enums;
 using Jellyfin.Naming.Common;
+using Jellyfin.Server.Implementations.Library;
 using Jellyfin.Server.Implementations.Sorting;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
@@ -66,7 +66,7 @@ public class LibraryManagerSortTests
     private static Folder MakeFolder(string name, DateTime dateLastMediaAdded)
         => new() { Name = name, Id = Guid.NewGuid(), DateLastMediaAdded = dateLastMediaAdded };
 
-    private static Emby.Server.Implementations.Library.LibraryManager CreateLibraryManager(IReadOnlyCollection<IBaseItemComparer> comparers)
+    private static Jellyfin.Server.Implementations.Library.LibraryManager CreateLibraryManager(IReadOnlyCollection<IBaseItemComparer> comparers)
     {
         var fixture = new Fixture().Customize(new AutoMoqCustomization());
         fixture.Register(() => new NamingOptions());
@@ -78,7 +78,7 @@ public class LibraryManagerSortTests
         var fileSystemMock = fixture.Freeze<Mock<IFileSystem>>();
         fileSystemMock.Setup(f => f.GetFileInfo(It.IsAny<string>())).Returns<string>(path => new FileSystemMetadata { FullName = path });
 
-        return fixture.Build<Emby.Server.Implementations.Library.LibraryManager>().Do(s => s.AddParts(
+        return fixture.Build<Jellyfin.Server.Implementations.Library.LibraryManager>().Do(s => s.AddParts(
                 fixture.Create<IEnumerable<IResolverIgnoreRule>>(),
                 fixture.Create<IEnumerable<IItemResolver>>(),
                 fixture.Create<IEnumerable<IIntroProvider>>(),

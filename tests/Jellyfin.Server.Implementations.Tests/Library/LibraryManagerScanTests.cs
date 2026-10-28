@@ -3,14 +3,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
 using AutoFixture.AutoMoq;
-using Emby.Server.Implementations.ScheduledTasks.Tasks;
 using Jellyfin.Naming.Common;
+using Jellyfin.Server.Implementations.ScheduledTasks.Tasks;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Model.Configuration;
 using MediaBrowser.Model.Tasks;
 using Moq;
 using Xunit;
-using ServerLibraryManager = Emby.Server.Implementations.Library.LibraryManager;
+using ServerLibraryManager = Jellyfin.Server.Implementations.Library.LibraryManager;
 
 namespace Jellyfin.Server.Implementations.Tests.Library;
 

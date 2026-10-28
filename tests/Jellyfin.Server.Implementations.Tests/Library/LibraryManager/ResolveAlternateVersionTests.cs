@@ -25,7 +25,7 @@ public sealed class ResolveAlternateVersionTests : IDisposable
     private const string PrimaryPath = "/movies/Up/Up.mkv";
     private const string AlternatePath = "/movies/Up/Up - 1080p.mkv";
 
-    private readonly Emby.Server.Implementations.Library.LibraryManager _libraryManager;
+    private readonly Jellyfin.Server.Implementations.Library.LibraryManager _libraryManager;
     private readonly Mock<IItemPersistenceService> _persistenceServiceMock;
     private readonly Folder _staleParent;
     private readonly ILibraryManager? _previousLibraryManager;
@@ -44,7 +44,7 @@ public sealed class ResolveAlternateVersionTests : IDisposable
             .Setup(f => f.GetFileInfo(It.IsAny<string>()))
             .Returns<string>(path => new FileSystemMetadata { FullName = path });
 
-        _libraryManager = fixture.Build<Emby.Server.Implementations.Library.LibraryManager>()
+        _libraryManager = fixture.Build<Jellyfin.Server.Implementations.Library.LibraryManager>()
             .Do(s => s.AddParts(
                 fixture.Create<IEnumerable<IResolverIgnoreRule>>(),
                 [],

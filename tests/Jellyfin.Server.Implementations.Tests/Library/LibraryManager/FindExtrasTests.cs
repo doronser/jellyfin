@@ -5,8 +5,8 @@ using System.Linq;
 using System.Text.Json;
 using AutoFixture;
 using AutoFixture.AutoMoq;
-using Emby.Server.Implementations.Library.Resolvers.Audio;
 using Jellyfin.Naming.Common;
+using Jellyfin.Server.Implementations.Library.Resolvers.Audio;
 using MediaBrowser.Controller.Configuration;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Audio;
@@ -27,7 +27,7 @@ namespace Jellyfin.Server.Implementations.Tests.Library.LibraryManager;
 
 public class FindExtrasTests
 {
-    private readonly Emby.Server.Implementations.Library.LibraryManager _libraryManager;
+    private readonly Jellyfin.Server.Implementations.Library.LibraryManager _libraryManager;
     private readonly Mock<IFileSystem> _fileSystemMock;
     private readonly Mock<IItemRepository> _itemRepositoryMock;
 
@@ -47,7 +47,7 @@ public class FindExtrasTests
             .Setup(l => l.GetServerLocalizedString(It.IsAny<string>()))
             .Returns<string>(key => strings.TryGetValue(key, out var value) ? value : key);
 
-        _libraryManager = fixture.Build<Emby.Server.Implementations.Library.LibraryManager>().Do(s => s.AddParts(
+        _libraryManager = fixture.Build<Jellyfin.Server.Implementations.Library.LibraryManager>().Do(s => s.AddParts(
                 fixture.Create<IEnumerable<IResolverIgnoreRule>>(),
                 [new AudioResolver(fixture.Create<NamingOptions>())],
                 fixture.Create<IEnumerable<IIntroProvider>>(),

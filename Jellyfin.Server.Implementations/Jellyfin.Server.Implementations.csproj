@@ -27,15 +27,21 @@
 
   <ItemGroup>
     <PackageReference Include="AsyncKeyedLock" />
+    <PackageReference Include="BitFaster.Caching" />
+    <PackageReference Include="DotNet.Glob" />
+    <PackageReference Include="DiscUtils.Udf" />
+    <PackageReference Include="Ignore" />
     <PackageReference Include="PlaylistsNET" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Jellyfin.Data\Jellyfin.Data.csproj" />
+    <ProjectReference Include="..\Jellyfin.Naming\Jellyfin.Naming.csproj" />
     <ProjectReference Include="..\Jellyfin.Api\Jellyfin.Api.csproj" />
     <ProjectReference Include="..\MediaBrowser.Controller\MediaBrowser.Controller.csproj" />
     <ProjectReference Include="..\MediaBrowser.Model\MediaBrowser.Model.csproj" />
+    <ProjectReference Include="..\MediaBrowser.LocalMetadata\MediaBrowser.LocalMetadata.csproj" />
     <ProjectReference Include="..\src\Jellyfin.Database\Jellyfin.Database.Implementations\Jellyfin.Database.Implementations.csproj" />
     <ProjectReference Include="..\src\Jellyfin.Database\Jellyfin.Database.Providers.Sqlite\Jellyfin.Database.Providers.Sqlite.csproj" />
   </ItemGroup>
