@@ -1,5 +1,5 @@
 using System;
-using Emby.Server.Implementations.Library;
+using Jellyfin.Server.Implementations.Library;
 using MediaBrowser.Model.Entities;
 using Xunit;
 

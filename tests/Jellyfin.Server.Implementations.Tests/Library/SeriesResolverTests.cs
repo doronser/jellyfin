@@ -1,6 +1,6 @@
-using Emby.Server.Implementations.Library.Resolvers.TV;
 using Jellyfin.Data.Enums;
 using Jellyfin.Naming.Common;
+using Jellyfin.Server.Implementations.Library.Resolvers.TV;
 using MediaBrowser.Controller;
 using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Library;

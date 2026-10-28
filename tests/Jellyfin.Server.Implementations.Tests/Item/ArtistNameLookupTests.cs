@@ -17,7 +17,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Moq;
 using Xunit;
-using ServerLibraryManager = Emby.Server.Implementations.Library.LibraryManager;
+using ServerLibraryManager = Jellyfin.Server.Implementations.Library.LibraryManager;
 
 namespace Jellyfin.Server.Implementations.Tests.Item;
 
