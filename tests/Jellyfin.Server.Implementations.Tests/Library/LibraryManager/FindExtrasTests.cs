@@ -62,8 +62,8 @@ public class FindExtrasTests
 
     private static Dictionary<string, string> LoadCoreStrings()
     {
-        using var stream = typeof(Emby.Server.Implementations.Library.LibraryManager).Assembly
-            .GetManifestResourceStream("Emby.Server.Implementations.Localization.Core.en-US.json")
+        using var stream = typeof(Jellyfin.Server.Implementations.Localization.LocalizationManager).Assembly
+            .GetManifestResourceStream("Jellyfin.Server.Implementations.Localization.Core.en-US.json")
             ?? throw new InvalidOperationException("Core localization resource is missing");
 
         return JsonSerializer.Deserialize<Dictionary<string, string>>(stream)

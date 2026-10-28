@@ -1,5 +1,5 @@
 using System;
-using Emby.Server.Implementations.Sorting;
+using Jellyfin.Server.Implementations.Sorting;
 using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Entities.Movies;
 using MediaBrowser.Controller.Entities.TV;

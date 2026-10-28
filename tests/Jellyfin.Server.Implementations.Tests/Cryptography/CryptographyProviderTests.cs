@@ -1,5 +1,5 @@
 using System;
-using Emby.Server.Implementations.Cryptography;
+using Jellyfin.Server.Implementations.Cryptography;
 using MediaBrowser.Model.Cryptography;
 using Xunit;
 
