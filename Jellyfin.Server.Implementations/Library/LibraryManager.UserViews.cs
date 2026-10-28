@@ -73,7 +73,7 @@ public partial class LibraryManager
                 {
                     var userRootPath = _configurationManager.ApplicationPaths.DefaultUserViewsPath;
 
-                    _logger.LogDebug("Creating userRootPath at {Path}", userRootPath);
+                    LogCreatingUserRootPath(userRootPath);
                     Directory.CreateDirectory(userRootPath);
 
                     var newItemId = GetNewItemId(userRootPath, typeof(UserRootFolder));
@@ -84,12 +84,12 @@ public partial class LibraryManager
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error creating UserRootFolder {Path}", newItemId);
+                        LogErrorCreatingUserRootFolder(ex, newItemId);
                     }
 
                     if (tmpItem is null)
                     {
-                        _logger.LogDebug("Creating new userRootFolder with DeepCopy");
+                        LogCreatingUserRootFolderDeepCopy();
                         tmpItem = (ResolvePath(_fileSystem.GetDirectoryInfo(userRootPath)) as Folder ?? throw new InvalidOperationException("Failed to get user root path"))
                                     .DeepCopy<Folder, UserRootFolder>();
                     }
@@ -97,12 +97,12 @@ public partial class LibraryManager
                     // In case program data folder was moved
                     if (!string.Equals(tmpItem.Path, userRootPath, StringComparison.Ordinal))
                     {
-                        _logger.LogInformation("Resetting user root folder path to {0}", userRootPath);
+                        LogResettingUserRootFolderPath(userRootPath);
                         tmpItem.Path = userRootPath;
                     }
 
                     _userRootFolder = tmpItem;
-                    _logger.LogDebug("Setting userRootFolder: {Folder}", _userRootFolder);
+                    LogSettingUserRootFolder(_userRootFolder);
                 }
             }
         }
@@ -585,4 +585,19 @@ public partial class LibraryManager
     {
         _taskManager.QueueScheduledTask<RefreshMediaLibraryTask>();
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Creating userRootPath at {Path}")]
+    private partial void LogCreatingUserRootPath(string path);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error creating UserRootFolder {Path}")]
+    private partial void LogErrorCreatingUserRootFolder(Exception ex, Guid path);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Creating new userRootFolder with DeepCopy")]
+    private partial void LogCreatingUserRootFolderDeepCopy();
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Resetting user root folder path to {Path}")]
+    private partial void LogResettingUserRootFolderPath(string path);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Setting userRootFolder: {Folder}")]
+    private partial void LogSettingUserRootFolder(UserRootFolder folder);
 }

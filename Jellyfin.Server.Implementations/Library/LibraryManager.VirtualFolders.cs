@@ -144,7 +144,7 @@ public partial class LibraryManager
 
     private async Task PerformLibraryValidation(IProgress<double> progress, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Validating media library");
+        LogValidatingMediaLibrary();
 
         await ValidateTopLibraryFolders(cancellationToken).ConfigureAwait(false);
 
@@ -175,7 +175,7 @@ public partial class LibraryManager
         var numComplete = 0;
         var numTasks = tasks.Count;
 
-        _logger.LogInformation("Running {TaskCount} post-scan task(s)", numTasks);
+        LogRunningPostScanTasks(numTasks);
 
         var phaseStart = Stopwatch.GetTimestamp();
 
@@ -199,42 +199,25 @@ public partial class LibraryManager
             var taskName = task.GetType().Name;
             var taskStart = Stopwatch.GetTimestamp();
 
-            _logger.LogInformation(
-                "Running post-scan task {TaskNumber}/{TaskCount}: {TaskName}",
-                currentNumComplete + 1,
-                numTasks,
-                taskName);
+            LogRunningPostScanTask(currentNumComplete + 1, numTasks, taskName);
 
             try
             {
                 await task.Run(innerProgress, cancellationToken).ConfigureAwait(false);
 
                 var elapsed = Stopwatch.GetElapsedTime(taskStart);
-                _logger.LogInformation(
-                    "Post-scan task {TaskName} completed after {Minutes} minute(s) and {Seconds} seconds",
-                    taskName,
-                    Math.Truncate(elapsed.TotalMinutes),
-                    elapsed.Seconds);
+                LogPostScanTaskCompleted(taskName, Math.Truncate(elapsed.TotalMinutes), elapsed.Seconds);
             }
             catch (OperationCanceledException)
             {
                 var elapsed = Stopwatch.GetElapsedTime(taskStart);
-                _logger.LogInformation(
-                    "Post-scan task {TaskName} cancelled after {Minutes} minute(s) and {Seconds} seconds",
-                    taskName,
-                    Math.Truncate(elapsed.TotalMinutes),
-                    elapsed.Seconds);
+                LogPostScanTaskCancelled(taskName, Math.Truncate(elapsed.TotalMinutes), elapsed.Seconds);
                 throw;
             }
             catch (Exception ex)
             {
                 var elapsed = Stopwatch.GetElapsedTime(taskStart);
-                _logger.LogError(
-                    ex,
-                    "Post-scan task {TaskName} failed after {Minutes} minute(s) and {Seconds} seconds",
-                    taskName,
-                    Math.Truncate(elapsed.TotalMinutes),
-                    elapsed.Seconds);
+                LogPostScanTaskFailed(ex, taskName, Math.Truncate(elapsed.TotalMinutes), elapsed.Seconds);
             }
 
             numComplete++;
@@ -244,10 +227,7 @@ public partial class LibraryManager
         }
 
         var phaseElapsed = Stopwatch.GetElapsedTime(phaseStart);
-        _logger.LogInformation(
-            "All post-scan tasks completed after {Minutes} minute(s) and {Seconds} seconds",
-            Math.Truncate(phaseElapsed.TotalMinutes),
-            phaseElapsed.Seconds);
+        LogAllPostScanTasksCompleted(Math.Truncate(phaseElapsed.TotalMinutes), phaseElapsed.Seconds);
 
         _persistenceService.UpdateInheritedValues();
 
@@ -265,10 +245,10 @@ public partial class LibraryManager
 
     public List<VirtualFolderInfo> GetVirtualFolders(bool includeRefreshState)
     {
-        _logger.LogDebug("Getting topLibraryFolders");
+        LogGettingTopLibraryFolders();
         var topLibraryFolders = GetUserRootFolder().Children.ToList();
 
-        _logger.LogDebug("Getting refreshQueue");
+        LogGettingRefreshQueue();
         var refreshQueue = includeRefreshState ? ProviderManager.GetRefreshQueue() : null;
 
         return _fileSystem.GetDirectoryPaths(_configurationManager.ApplicationPaths.DefaultUserViewsPath)
@@ -292,7 +272,7 @@ public partial class LibraryManager
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error resolving shortcut file {File}", i);
+                        LogErrorResolvingShortcutFile(ex, i);
                         return null;
                     }
                 })
@@ -394,7 +374,7 @@ public partial class LibraryManager
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to create person {Name}", person.Name);
+                    LogFailedToCreatePerson(ex, person.Name);
                     continue;
                 }
             }
@@ -670,4 +650,37 @@ public partial class LibraryManager
             }
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Validating media library")]
+    private partial void LogValidatingMediaLibrary();
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Running {TaskCount} post-scan task(s)")]
+    private partial void LogRunningPostScanTasks(int taskCount);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Running post-scan task {TaskNumber}/{TaskCount}: {TaskName}")]
+    private partial void LogRunningPostScanTask(int taskNumber, int taskCount, string taskName);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Post-scan task {TaskName} completed after {Minutes} minute(s) and {Seconds} seconds")]
+    private partial void LogPostScanTaskCompleted(string taskName, double minutes, int seconds);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Post-scan task {TaskName} cancelled after {Minutes} minute(s) and {Seconds} seconds")]
+    private partial void LogPostScanTaskCancelled(string taskName, double minutes, int seconds);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Post-scan task {TaskName} failed after {Minutes} minute(s) and {Seconds} seconds")]
+    private partial void LogPostScanTaskFailed(Exception ex, string taskName, double minutes, int seconds);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "All post-scan tasks completed after {Minutes} minute(s) and {Seconds} seconds")]
+    private partial void LogAllPostScanTasksCompleted(double minutes, int seconds);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Getting topLibraryFolders")]
+    private partial void LogGettingTopLibraryFolders();
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Getting refreshQueue")]
+    private partial void LogGettingRefreshQueue();
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error resolving shortcut file {File}")]
+    private partial void LogErrorResolvingShortcutFile(Exception ex, string file);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to create person {Name}")]
+    private partial void LogFailedToCreatePerson(Exception ex, string name);
 }

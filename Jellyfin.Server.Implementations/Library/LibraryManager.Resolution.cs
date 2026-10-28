@@ -71,7 +71,7 @@ public partial class LibraryManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in {Resolver} resolving {Path}", resolver.GetType().Name, args.Path);
+            LogErrorInResolver(ex, resolver.GetType().Name, args.Path);
             return null;
         }
     }
@@ -132,7 +132,7 @@ public partial class LibraryManager
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to enumerate siblings to detect stack for {Path}", path);
+            LogFailedToEnumerateSiblings(ex, path);
             return;
         }
 
@@ -160,11 +160,7 @@ public partial class LibraryManager
             var wrongTypeId = GetNewItemId(path, typeof(Video));
             if (!wrongTypeId.Equals(expectedId) && GetItemById(wrongTypeId) is Video wrongTypeItem)
             {
-                _logger.LogInformation(
-                    "Removing alternate version with wrong type {WrongType}, expected {ExpectedType}: {Path}",
-                    wrongTypeItem.GetType().Name,
-                    expectedVideoType.Name,
-                    path);
+                LogRemovingAlternateVersionWrongType(wrongTypeItem.GetType().Name, expectedVideoType.Name, path);
 
                 // A full DeleteItem would save the primary version, which resolves its
                 // alternates again and re-enters here before this row is gone.
@@ -260,7 +256,7 @@ public partial class LibraryManager
             {
                 if (parent is not null && parent.IsPhysicalRoot)
                 {
-                    _logger.LogError(ex, "Error in GetFilteredFileSystemEntries isPhysicalRoot: {0} IsVf: {1}", isPhysicalRoot, isVf);
+                    LogErrorGettingFilteredFileSystemEntries(ex, isPhysicalRoot, isVf);
 
                     files = [];
                 }
@@ -307,7 +303,7 @@ public partial class LibraryManager
 
         foreach (var dupe in dupes)
         {
-            _logger.LogInformation("Found duplicate path: {0}", dupe);
+            LogFoundDuplicatePath(dupe);
         }
 
         var newList = list.Except(dupes, StringComparer.Ordinal).Select(_fileSystem.GetDirectoryInfo).ToList();
@@ -370,7 +366,7 @@ public partial class LibraryManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error resolving path {Path}", file.FullName);
+                LogErrorResolvingPath(ex, file.FullName);
             }
 
             if (result is not null)
@@ -396,7 +392,7 @@ public partial class LibraryManager
         // In case program data folder was moved
         if (!string.Equals(rootFolder.Path, rootFolderPath, StringComparison.Ordinal))
         {
-            _logger.LogInformation("Resetting root folder path to {0}", rootFolderPath);
+            LogResettingRootFolderPath(rootFolderPath);
             rootFolder.Path = rootFolderPath;
         }
 
@@ -782,4 +778,25 @@ public partial class LibraryManager
 
         return path;
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error in {Resolver} resolving {Path}")]
+    private partial void LogErrorInResolver(Exception ex, string resolver, string path);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to enumerate siblings to detect stack for {Path}")]
+    private partial void LogFailedToEnumerateSiblings(Exception ex, string path);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Removing alternate version with wrong type {WrongType}, expected {ExpectedType}: {Path}")]
+    private partial void LogRemovingAlternateVersionWrongType(string wrongType, string expectedType, string path);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error in GetFilteredFileSystemEntries isPhysicalRoot: {IsPhysicalRoot} IsVf: {IsVf}")]
+    private partial void LogErrorGettingFilteredFileSystemEntries(Exception ex, bool isPhysicalRoot, bool isVf);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Found duplicate path: {Path}")]
+    private partial void LogFoundDuplicatePath(string path);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error resolving path {Path}")]
+    private partial void LogErrorResolvingPath(Exception ex, string path);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Resetting root folder path to {Path}")]
+    private partial void LogResettingRootFolderPath(string path);
 }

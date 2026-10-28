@@ -775,7 +775,7 @@ public partial class LibraryManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting intros");
+            LogErrorGettingIntros(ex);
 
             return [];
         }
@@ -797,7 +797,7 @@ public partial class LibraryManager
 
             if (video is null)
             {
-                _logger.LogError("Unable to locate item with Id {ID}.", info.ItemId.Value);
+                LogUnableToLocateItem(info.ItemId.Value);
             }
         }
         else if (!string.IsNullOrEmpty(info.Path))
@@ -809,7 +809,7 @@ public partial class LibraryManager
 
                 if (video is null)
                 {
-                    _logger.LogError("Intro resolver returned null for {Path}.", info.Path);
+                    LogIntroResolverReturnedNull(info.Path);
                 }
                 else
                 {
@@ -828,12 +828,12 @@ public partial class LibraryManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error resolving path {Path}.", info.Path);
+                LogErrorResolvingIntroPath(ex, info.Path);
             }
         }
         else
         {
-            _logger.LogError("IntroProvider returned an IntroInfo with null Path and ItemId.");
+            LogIntroInfoMissingPathAndItemId();
         }
 
         return video;
@@ -1022,7 +1022,7 @@ public partial class LibraryManager
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "error retrieving BaseItem for person: {0}", i.Name);
+                    LogErrorRetrievingBaseItemForPerson(ex, i.Name);
                     return null;
                 }
             })
@@ -1090,7 +1090,7 @@ public partial class LibraryManager
         {
             try
             {
-                _logger.LogDebug("ConvertImageToLocal item {0} - image url: {1}", item.Id, url);
+                LogConvertImageToLocal(item.Id, url);
 
                 await ProviderManager.SaveImage(item, url, image.Type, imageIndex, CancellationToken.None).ConfigureAwait(false);
 
@@ -1116,7 +1116,7 @@ public partial class LibraryManager
                 if (ex.StatusCode.HasValue
                     && (ex.StatusCode.Value == HttpStatusCode.NotFound || ex.StatusCode.Value == HttpStatusCode.Forbidden))
                 {
-                    _logger.LogDebug(ex, "Error downloading image {Url}", url);
+                    LogErrorDownloadingImage(ex, url);
                     continue;
                 }
 
@@ -1169,6 +1169,30 @@ public partial class LibraryManager
         SetTopParentOrAncestorIds(query);
         return _itemRepository.GetMediaStreamLanguages(query, mediaStreamType);
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error getting intros")]
+    private partial void LogErrorGettingIntros(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Unable to locate item with Id {ID}.")]
+    private partial void LogUnableToLocateItem(Guid id);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Intro resolver returned null for {Path}.")]
+    private partial void LogIntroResolverReturnedNull(string path);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error resolving path {Path}.")]
+    private partial void LogErrorResolvingIntroPath(Exception ex, string path);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "IntroProvider returned an IntroInfo with null Path and ItemId.")]
+    private partial void LogIntroInfoMissingPathAndItemId();
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "error retrieving BaseItem for person: {Name}")]
+    private partial void LogErrorRetrievingBaseItemForPerson(Exception ex, string name);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "ConvertImageToLocal item {ItemId} - image url: {Url}")]
+    private partial void LogConvertImageToLocal(Guid itemId, string url);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Error downloading image {Url}")]
+    private partial void LogErrorDownloadingImage(Exception ex, string url);
 
     private sealed record ExtraCandidate(BaseItem Extra, ExtraType ExtraType, ExtraRule ExtraRule, bool IsInMixedFolder);
 }

@@ -40,7 +40,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Server.Implementations.Library;
 
-public class MediaSourceManager : IMediaSourceManager, IDisposable
+public partial class MediaSourceManager : IMediaSourceManager, IDisposable
 {
     // Do not use a pipe here because Roku http requests to the server will fail, without any explicit error message.
     private const char LiveStreamIdDelimiter = '_';
@@ -326,7 +326,7 @@ public class MediaSourceManager : IMediaSourceManager, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting media sources");
+            LogErrorGettingMediaSources(ex);
             return [];
         }
     }
@@ -686,13 +686,13 @@ public class MediaSourceManager : IMediaSourceManager, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error probing live tv stream");
+            LogErrorProbingLiveTvStream(ex);
             AddMediaInfo(mediaSource);
         }
 
         // TODO: @bond Fix
         var json = JsonSerializer.SerializeToUtf8Bytes(mediaSource, _jsonOptions);
-        _logger.LogInformation("Live stream opened: {@MediaSource}", mediaSource);
+        LogLiveStreamOpened(mediaSource);
         var clone = JsonSerializer.Deserialize<MediaSourceInfo>(json, _jsonOptions);
 
         if (!request.UserId.IsEmpty())
@@ -808,7 +808,7 @@ public class MediaSourceManager : IMediaSourceManager, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogDebug(ex, "Error parsing cached media info.");
+                LogErrorParsingCachedMediaInfo(ex);
             }
             finally
             {
@@ -869,7 +869,7 @@ public class MediaSourceManager : IMediaSourceManager, IDisposable
             mediaStreams = newList;
         }
 
-        _logger.LogInformation("Live tv media info probe took {0} seconds", (DateTime.UtcNow - now).TotalSeconds.ToString(CultureInfo.InvariantCulture));
+        LogLiveTvMediaInfoProbeTook((DateTime.UtcNow - now).TotalSeconds.ToString(CultureInfo.InvariantCulture));
 
         mediaSource.Bitrate = mediaInfo.Bitrate;
         mediaSource.Container = mediaInfo.Container;
@@ -1014,16 +1014,16 @@ public class MediaSourceManager : IMediaSourceManager, IDisposable
             {
                 liveStream.ConsumerCount--;
 
-                _logger.LogInformation("Live stream {0} consumer count is now {1}", liveStream.OriginalStreamId, liveStream.ConsumerCount);
+                LogLiveStreamConsumerCount(liveStream.OriginalStreamId, liveStream.ConsumerCount);
 
                 if (liveStream.ConsumerCount <= 0)
                 {
                     _openStreams.TryRemove(id, out _);
 
-                    _logger.LogInformation("Closing live stream {0}", id);
+                    LogClosingLiveStream(id);
 
                     await liveStream.Close().ConfigureAwait(false);
-                    _logger.LogInformation("Live stream {0} closed successfully", id);
+                    LogLiveStreamClosed(id);
                 }
             }
         }
@@ -1066,4 +1066,28 @@ public class MediaSourceManager : IMediaSourceManager, IDisposable
             _liveStreamLocker.Dispose();
         }
     }
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error getting media sources")]
+    private partial void LogErrorGettingMediaSources(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error probing live tv stream")]
+    private partial void LogErrorProbingLiveTvStream(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Live stream opened: {@MediaSource}")]
+    private partial void LogLiveStreamOpened(MediaSourceInfo mediaSource);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Error parsing cached media info.")]
+    private partial void LogErrorParsingCachedMediaInfo(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Live tv media info probe took {Seconds} seconds")]
+    private partial void LogLiveTvMediaInfoProbeTook(string seconds);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Live stream {OriginalStreamId} consumer count is now {ConsumerCount}")]
+    private partial void LogLiveStreamConsumerCount(string originalStreamId, int consumerCount);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Closing live stream {Id}")]
+    private partial void LogClosingLiveStream(string id);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Live stream {Id} closed successfully")]
+    private partial void LogLiveStreamClosed(string id);
 }

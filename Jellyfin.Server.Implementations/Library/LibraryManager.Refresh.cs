@@ -96,30 +96,24 @@ public partial class LibraryManager
                 }
                 catch (ArgumentException)
                 {
-                    _logger.LogWarning("Cannot get image index for {ImagePath}", img.Path);
+                    LogCannotGetImageIndex(img.Path);
                     continue;
                 }
                 catch (Exception ex) when (ex is InvalidOperationException or IOException)
                 {
-                    _logger.LogWarning(ex, "Cannot fetch image from {ImagePath}", img.Path);
+                    LogCannotFetchImage(ex, img.Path);
                     continue;
                 }
                 catch (HttpRequestException ex)
                 {
-                    _logger.LogWarning(ex, "Cannot fetch image from {ImagePath}. Http status code: {HttpStatus}", img.Path, ex.StatusCode);
+                    LogCannotFetchImageHttp(ex, img.Path, ex.StatusCode);
                     continue;
                 }
             }
 
             if (string.IsNullOrEmpty(image.Path) || !File.Exists(image.Path))
             {
-                _logger.LogWarning(
-                    "{ImageType} image for {ItemName} ({ItemId}) not found at \"{ImagePath}\", source was {SourcePath}",
-                    img.Type,
-                    item.Name,
-                    item.Id,
-                    image.Path,
-                    img.Path);
+                LogImageNotFound(img.Type, item.Name, item.Id, image.Path, img.Path);
                 continue;
             }
 
@@ -132,7 +126,7 @@ public partial class LibraryManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Cannot get image dimensions for {ImagePath}", image.Path);
+                LogCannotGetImageDimensions(ex, image.Path);
                 size = default;
                 image.Width = 0;
                 image.Height = 0;
@@ -145,7 +139,7 @@ public partial class LibraryManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Cannot compute blurhash for {ImagePath}", image.Path);
+                LogCannotComputeBlurhash(ex, image.Path);
                 image.BlurHash = string.Empty;
             }
 
@@ -156,7 +150,7 @@ public partial class LibraryManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Cannot update DateModified for {ImagePath}", image.Path);
+                LogCannotUpdateDateModified(ex, image.Path);
             }
         }
 
@@ -263,7 +257,7 @@ public partial class LibraryManager
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in ItemUpdated event handler");
+                    LogErrorInItemUpdatedHandler(ex);
                 }
             }
         }
@@ -300,7 +294,7 @@ public partial class LibraryManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ItemRemoved event handler");
+                LogErrorInItemRemovedHandler(ex);
             }
         }
     }
@@ -391,4 +385,31 @@ public partial class LibraryManager
         // Queue instead of restarting so a scan that starts after the check is allowed to finish.
         return Task.Run(QueueLibraryScan);
     }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Cannot get image index for {ImagePath}")]
+    private partial void LogCannotGetImageIndex(string imagePath);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Cannot fetch image from {ImagePath}")]
+    private partial void LogCannotFetchImage(Exception ex, string imagePath);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Cannot fetch image from {ImagePath}. Http status code: {HttpStatus}")]
+    private partial void LogCannotFetchImageHttp(Exception ex, string imagePath, HttpStatusCode? httpStatus);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "{ImageType} image for {ItemName} ({ItemId}) not found at \"{ImagePath}\", source was {SourcePath}")]
+    private partial void LogImageNotFound(ImageType imageType, string itemName, Guid itemId, string imagePath, string sourcePath);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot get image dimensions for {ImagePath}")]
+    private partial void LogCannotGetImageDimensions(Exception ex, string imagePath);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot compute blurhash for {ImagePath}")]
+    private partial void LogCannotComputeBlurhash(Exception ex, string imagePath);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot update DateModified for {ImagePath}")]
+    private partial void LogCannotUpdateDateModified(Exception ex, string imagePath);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error in ItemUpdated event handler")]
+    private partial void LogErrorInItemUpdatedHandler(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error in ItemRemoved event handler")]
+    private partial void LogErrorInItemRemovedHandler(Exception ex);
 }

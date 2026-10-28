@@ -98,12 +98,7 @@ public partial class LibraryManager
                     continue;
                 }
 
-                _logger.LogDebug(
-                    "Deleting metadata path, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}",
-                    item.GetType().Name,
-                    item.Name ?? "Unknown name",
-                    metadataPath,
-                    item.Id);
+                LogDeletingMetadataPath(item.GetType().Name, item.Name ?? "Unknown name", metadataPath, item.Id);
 
                 try
                 {
@@ -111,7 +106,7 @@ public partial class LibraryManager
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error deleting {MetadataPath}", metadataPath);
+                    LogErrorDeletingMetadataPath(ex, metadataPath);
                 }
             }
 
@@ -160,21 +155,11 @@ public partial class LibraryManager
 
         if (item is LiveTvProgram)
         {
-            _logger.LogDebug(
-                "Removing item, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}",
-                item.GetType().Name,
-                item.Name ?? "Unknown name",
-                item.Path ?? string.Empty,
-                item.Id);
+            LogRemovingItemDebug(item.GetType().Name, item.Name ?? "Unknown name", item.Path ?? string.Empty, item.Id);
         }
         else
         {
-            _logger.LogInformation(
-                "Removing item, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}",
-                item.GetType().Name,
-                item.Name ?? "Unknown name",
-                item.Path ?? string.Empty,
-                item.Id);
+            LogRemovingItem(item.GetType().Name, item.Name ?? "Unknown name", item.Path ?? string.Empty, item.Id);
         }
 
         // If deleting a primary version video, clear PrimaryVersionId from alternate versions
@@ -208,10 +193,7 @@ public partial class LibraryManager
             // Clear PrimaryVersionId first so DeleteItem doesn't try to update the primary being deleted.
             foreach (var missing in missingAlternates)
             {
-                _logger.LogInformation(
-                    "Deleting missing alternate version {Name} ({Path})",
-                    missing.Name ?? "Unknown name",
-                    missing.Path ?? string.Empty);
+                LogDeletingMissingAlternateVersion(missing.Name ?? "Unknown name", missing.Path ?? string.Empty);
                 missing.SetPrimaryVersionId(null);
                 missing.OwnerId = Guid.Empty;
                 missing.LocalAlternateVersions = [];
@@ -221,10 +203,7 @@ public partial class LibraryManager
 
             if (alternateVersions.Count > 0)
             {
-                _logger.LogInformation(
-                    "Clearing PrimaryVersionId from {Count} alternate versions of {Name}",
-                    alternateVersions.Count,
-                    item.Name ?? "Unknown name");
+                LogClearingPrimaryVersionId(alternateVersions.Count, item.Name ?? "Unknown name");
 
                 // Promote the first alternate version to be the new primary
                 var newPrimary = alternateVersions[0];
@@ -281,12 +260,7 @@ public partial class LibraryManager
                 continue;
             }
 
-            _logger.LogDebug(
-                "Deleting metadata path, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}",
-                item.GetType().Name,
-                item.Name ?? "Unknown name",
-                metadataPath,
-                item.Id);
+            LogDeletingMetadataPath(item.GetType().Name, item.Name ?? "Unknown name", metadataPath, item.Id);
 
             try
             {
@@ -294,7 +268,7 @@ public partial class LibraryManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting {MetadataPath}", metadataPath);
+                LogErrorDeletingMetadataPath(ex, metadataPath);
             }
         }
 
@@ -349,12 +323,7 @@ public partial class LibraryManager
         {
             try
             {
-                _logger.LogInformation(
-                    "Deleting item path, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}",
-                    item.GetType().Name,
-                    item.Name ?? "Unknown name",
-                    fileSystemInfo.FullName,
-                    item.Id);
+                LogDeletingItemPath(item.GetType().Name, item.Name ?? "Unknown name", fileSystemInfo.FullName, item.Id);
 
                 if (fileSystemInfo.IsDirectory)
                 {
@@ -367,21 +336,11 @@ public partial class LibraryManager
             }
             catch (DirectoryNotFoundException)
             {
-                _logger.LogInformation(
-                    "Directory not found, only removing from database, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}",
-                    item.GetType().Name,
-                    item.Name ?? "Unknown name",
-                    fileSystemInfo.FullName,
-                    item.Id);
+                LogDirectoryNotFound(item.GetType().Name, item.Name ?? "Unknown name", fileSystemInfo.FullName, item.Id);
             }
             catch (FileNotFoundException)
             {
-                _logger.LogInformation(
-                    "File not found, only removing from database, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}",
-                    item.GetType().Name,
-                    item.Name ?? "Unknown name",
-                    fileSystemInfo.FullName,
-                    item.Id);
+                LogFileNotFound(item.GetType().Name, item.Name ?? "Unknown name", fileSystemInfo.FullName, item.Id);
             }
             catch (IOException)
             {
@@ -576,7 +535,7 @@ public partial class LibraryManager
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in ItemAdded event handler");
+                    LogErrorInItemAddedHandler(ex);
                 }
             }
         }
@@ -597,7 +556,7 @@ public partial class LibraryManager
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Cannot get file info for {0}", image.Path);
+                LogCannotGetFileInfo(ex, image.Path);
                 return false;
             }
         }
@@ -660,4 +619,37 @@ public partial class LibraryManager
         SetTopParentOrAncestorIds(query);
         return _itemRepository.GetQueryFiltersLegacy(query);
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Deleting metadata path, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}")]
+    private partial void LogDeletingMetadataPath(string type, string name, string path, Guid id);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error deleting {MetadataPath}")]
+    private partial void LogErrorDeletingMetadataPath(Exception ex, string metadataPath);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Removing item, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}")]
+    private partial void LogRemovingItemDebug(string type, string name, string path, Guid id);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Removing item, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}")]
+    private partial void LogRemovingItem(string type, string name, string path, Guid id);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Deleting missing alternate version {Name} ({Path})")]
+    private partial void LogDeletingMissingAlternateVersion(string name, string path);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Clearing PrimaryVersionId from {Count} alternate versions of {Name}")]
+    private partial void LogClearingPrimaryVersionId(int count, string name);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Deleting item path, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}")]
+    private partial void LogDeletingItemPath(string type, string name, string path, Guid id);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Directory not found, only removing from database, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}")]
+    private partial void LogDirectoryNotFound(string type, string name, string path, Guid id);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "File not found, only removing from database, Type: {Type}, Name: {Name}, Path: {Path}, Id: {Id}")]
+    private partial void LogFileNotFound(string type, string name, string path, Guid id);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Error in ItemAdded event handler")]
+    private partial void LogErrorInItemAddedHandler(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Cannot get file info for {Path}")]
+    private partial void LogCannotGetFileInfo(Exception ex, string path);
 }
