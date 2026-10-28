@@ -10,77 +10,76 @@ using MediaBrowser.Controller.Entities;
 using MediaBrowser.Controller.Library;
 using MediaBrowser.Controller.Resolvers;
 
-namespace Jellyfin.Server.Implementations.Library.Resolvers.Books
+namespace Jellyfin.Server.Implementations.Library.Resolvers.Books;
+
+public class BookResolver : ItemResolver<Book>
 {
-    public class BookResolver : ItemResolver<Book>
+    private readonly string[] _validExtensions = { ".azw", ".azw3", ".cb7", ".cbr", ".cbt", ".cbz", ".epub", ".mobi", ".pdf" };
+
+    protected override Book? Resolve(ItemResolveArgs args)
     {
-        private readonly string[] _validExtensions = { ".azw", ".azw3", ".cb7", ".cbr", ".cbt", ".cbz", ".epub", ".mobi", ".pdf" };
+        var collectionType = args.GetCollectionType();
 
-        protected override Book? Resolve(ItemResolveArgs args)
+        // Only process items that are in a collection folder containing books
+        if (collectionType != CollectionType.books)
         {
-            var collectionType = args.GetCollectionType();
-
-            // Only process items that are in a collection folder containing books
-            if (collectionType != CollectionType.books)
-            {
-                return null;
-            }
-
-            if (args.IsDirectory)
-            {
-                return GetBook(args);
-            }
-
-            var extension = Path.GetExtension(args.Path.AsSpan());
-
-            if (!_validExtensions.Contains(extension, StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            var result = BookFileNameParser.Parse(Path.GetFileNameWithoutExtension(args.Path));
-
-            return new Book
-            {
-                Path = args.Path,
-                Name = result.Name ?? string.Empty,
-                IndexNumber = result.Index,
-                ParentIndexNumber = result.ParentIndex,
-                ProductionYear = result.Year,
-                SeriesName = result.SeriesName ?? Path.GetFileName(Path.GetDirectoryName(args.Path)),
-                IsInMixedFolder = true,
-            };
+            return null;
         }
 
-        private Book? GetBook(ItemResolveArgs args)
+        if (args.IsDirectory)
         {
-            var bookFiles = args.FileSystemChildren.Where(f =>
-            {
-                var fileExtension = Path.GetExtension(f.FullName.AsSpan());
-
-                return _validExtensions.Contains(
-                    fileExtension,
-                    StringComparison.OrdinalIgnoreCase);
-            }).ToList();
-
-            // directory is only considered a book when it contains exactly one supported file
-            // other library structures with multiple books to a directory will get picked up as individual files
-            if (bookFiles.Count != 1)
-            {
-                return null;
-            }
-
-            var result = BookFileNameParser.Parse(Path.GetFileName(args.Path));
-
-            return new Book
-            {
-                Path = bookFiles[0].FullName,
-                Name = result.Name ?? string.Empty,
-                IndexNumber = result.Index,
-                ParentIndexNumber = result.ParentIndex,
-                ProductionYear = result.Year,
-                SeriesName = result.SeriesName ?? string.Empty,
-            };
+            return GetBook(args);
         }
+
+        var extension = Path.GetExtension(args.Path.AsSpan());
+
+        if (!_validExtensions.Contains(extension, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        var result = BookFileNameParser.Parse(Path.GetFileNameWithoutExtension(args.Path));
+
+        return new Book
+        {
+            Path = args.Path,
+            Name = result.Name ?? string.Empty,
+            IndexNumber = result.Index,
+            ParentIndexNumber = result.ParentIndex,
+            ProductionYear = result.Year,
+            SeriesName = result.SeriesName ?? Path.GetFileName(Path.GetDirectoryName(args.Path)),
+            IsInMixedFolder = true,
+        };
+    }
+
+    private Book? GetBook(ItemResolveArgs args)
+    {
+        var bookFiles = args.FileSystemChildren.Where(f =>
+        {
+            var fileExtension = Path.GetExtension(f.FullName.AsSpan());
+
+            return _validExtensions.Contains(
+                fileExtension,
+                StringComparison.OrdinalIgnoreCase);
+        }).ToList();
+
+        // directory is only considered a book when it contains exactly one supported file
+        // other library structures with multiple books to a directory will get picked up as individual files
+        if (bookFiles.Count != 1)
+        {
+            return null;
+        }
+
+        var result = BookFileNameParser.Parse(Path.GetFileName(args.Path));
+
+        return new Book
+        {
+            Path = bookFiles[0].FullName,
+            Name = result.Name ?? string.Empty,
+            IndexNumber = result.Index,
+            ParentIndexNumber = result.ParentIndex,
+            ProductionYear = result.Year,
+            SeriesName = result.SeriesName ?? string.Empty,
+        };
     }
 }
